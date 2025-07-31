@@ -67,12 +67,18 @@
             color: white !important;
             padding: 0.5rem 1rem;
             border-radius: 6px;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .logout-btn:hover {
             background: #c82333;
             color: white !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
         }
 
         /* Main Container */

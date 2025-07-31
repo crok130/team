@@ -127,12 +127,21 @@
             background: #dc3545;
             color: white !important;
             border-color: #dc3545;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .logout-btn:hover {
             background: #c82333 !important;
             border-color: #c82333;
             color: white !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
         }
 
         /* Hero Section */
