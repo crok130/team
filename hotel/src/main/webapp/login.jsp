@@ -258,6 +258,21 @@
                 <button type="submit" class="btn">로그인</button>
             </form>
 
+            <!-- 소셜 로그인 구분선 -->
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                    <div style="flex: 1; height: 1px; background-color: #ddd;"></div>
+                    <span style="color: #666; font-size: 0.9rem;">또는</span>
+                    <div style="flex: 1; height: 1px; background-color: #ddd;"></div>
+                </div>
+            </div>
+
+            <!-- 카카오 로그인 버튼 -->
+            <button type="button" id="kakaoLoginBtn" class="btn" style="background-color: #FEE500; color: #000000; border: 2px solid #FEE500;" onclick="KakaoLogin.login()">
+                <i class="fas fa-comment" style="margin-right: 8px;"></i>
+                카카오로 로그인
+            </button>
+
             <div class="register-link">
                 아직 계정이 없으신가요? <a href="register.jsp">회원가입</a>
             </div>
