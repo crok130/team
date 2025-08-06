@@ -56,6 +56,7 @@ CREATE TABLE posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 작성 일시
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- 수정 일시
 );
+select * from reservations;
 
 -- ====================
 -- 3. 예약 테이블 (IDENTITY 방식) - 상태 간소화
@@ -415,7 +416,6 @@ SELECT '=== 호텔 매니저별 매출 현황 ===' as status FROM dual;
 SELECT 
     u.name as manager_name,
     h.title as hotel_name,
-    COUNT(r.reservation_id) as total_reservations,
     SUM(r.total_amount) as total_revenue,
     ROUND(AVG(r.total_amount), 0) as avg_revenue
 FROM users u
@@ -463,3 +463,10 @@ SELECT '파트 4 개발용 업데이트된 데이터 생성 완료!' as message 
 -- 스케줄러 중지: EXEC DBMS_SCHEDULER.DISABLE('AUTO_UPDATE_RESERVATION_STATUS');
 -- 스케줄러 재시작: EXEC DBMS_SCHEDULER.ENABLE('AUTO_UPDATE_RESERVATION_STATUS');
 -- 스케줄러 삭제: EXEC DBMS_SCHEDULER.DROP_JOB('AUTO_UPDATE_RESERVATION_STATUS');
+
+SELECT 
+    COUNT(*) AS total_reservations
+    
+FROM reservations WHERE booking_date = 24/01/10 14:30:00.000000000;
+;
+select * FROM reservations;
