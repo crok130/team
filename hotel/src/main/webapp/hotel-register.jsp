@@ -405,7 +405,7 @@
         </div>
 
         <div class="form-container">
-            <form action="HotelRegisterServlet" method="POST" enctype="multipart/form-data">
+            <form action="upload" method="POST" enctype="multipart/form-data">
                 
                 <!-- 기본 정보 -->
                 <div class="form-section">
@@ -475,19 +475,19 @@
                             <div class="dynamic-item">
                                 <div class="form-group">
                                     <label>객실 타입명 *</label>
-                                    <input type="text" name="room_titles[]" placeholder="예: 스탠다드룸" required>
+                                    <input type="text" name="room_titles" placeholder="예: 스탠다드룸" required>
                                 </div>
                                 <div class="form-group">
                                     <label>1박 요금 (원) *</label>
-                                    <input type="number" name="room_prices[]" placeholder="120000" min="0" required>
+                                    <input type="number" name="room_prices" placeholder="120000" min="0" required>
                                 </div>
                                 <div class="form-group">
                                     <label>객실 개수 *</label>
-                                    <input type="number" name="room_counts[]" placeholder="15" min="1" required>
+                                    <input type="number" name="room_counts" placeholder="15" min="1" required>
                                 </div>
                                 <div class="form-group">
                                     <label>객실 설명</label>
-                                    <input type="text" name="room_contents[]" placeholder="객실에 대한 간단한 설명">
+                                    <input type="text" name="room_contents" placeholder="객실에 대한 간단한 설명">
                                 </div>
                                 <button type="button" class="btn-remove" onclick="removeRoomType(this)">
                                     <i class="fas fa-trash"></i>
@@ -511,11 +511,11 @@
                             <div class="dynamic-item">
                                 <div class="form-group">
                                     <label>시설명 *</label>
-                                    <input type="text" name="facility_titles[]" placeholder="예: 무료 Wi-Fi" required>
+                                    <input type="text" name="facility_titles" placeholder="예: 무료 Wi-Fi" required>
                                 </div>
                                 <div class="form-group">
                                     <label>시설 설명</label>
-                                    <input type="text" name="facility_contents[]" placeholder="시설에 대한 상세 설명">
+                                    <input type="text" name="facility_contents" placeholder="시설에 대한 상세 설명">
                                 </div>
                                 <button type="button" class="btn-remove" onclick="removeFacility(this)">
                                     <i class="fas fa-trash"></i>
@@ -538,7 +538,7 @@
                         <div class="form-group">
                             <label>이미지 파일들 * (여러 개 선택 가능)</label>
                             <div class="file-input-wrapper">
-                                <input type="file" name="image_files[]" class="file-input" accept="image/*" multiple required onchange="previewMultipleImages(this)">
+                                <input type="file" name="image_files" class="file-input" accept="image/*" multiple required onchange="previewMultipleImages(this)">
                                 <div class="file-input-display">
                                     <i class="fas fa-upload"></i>
                                     <span>이미지들 선택 (Ctrl+클릭으로 여러 개 선택)</span>
@@ -577,19 +577,19 @@
             newItem.innerHTML = `
                 <div class="form-group">
                     <label>객실 타입명 *</label>
-                    <input type="text" name="room_titles[]" placeholder="예: 디럭스룸" required>
+                    <input type="text" name="room_titles" placeholder="예: 디럭스룸" required>
                 </div>
                 <div class="form-group">
                     <label>1박 요금 (원) *</label>
-                    <input type="number" name="room_prices[]" placeholder="180000" min="0" required>
+                    <input type="number" name="room_prices" placeholder="180000" min="0" required>
                 </div>
                 <div class="form-group">
                     <label>객실 개수 *</label>
-                    <input type="number" name="room_counts[]" placeholder="10" min="1" required>
+                    <input type="number" name="room_counts" placeholder="10" min="1" required>
                 </div>
                 <div class="form-group">
                     <label>객실 설명</label>
-                    <input type="text" name="room_contents[]" placeholder="객실에 대한 간단한 설명">
+                    <input type="text" name="room_contents" placeholder="객실에 대한 간단한 설명">
                 </div>
                 <button type="button" class="btn-remove" onclick="removeRoomType(this)">
                     <i class="fas fa-trash"></i>
@@ -615,11 +615,11 @@
             newItem.innerHTML = `
                 <div class="form-group">
                     <label>시설명 *</label>
-                    <input type="text" name="facility_titles[]" placeholder="예: 수영장" required>
+                    <input type="text" name="facility_titles" placeholder="예: 수영장" required>
                 </div>
                 <div class="form-group">
                     <label>시설 설명</label>
-                    <input type="text" name="facility_contents[]" placeholder="시설에 대한 상세 설명">
+                    <input type="text" name="facility_contents" placeholder="시설에 대한 상세 설명">
                 </div>
                 <button type="button" class="btn-remove" onclick="removeFacility(this)">
                     <i class="fas fa-trash"></i>
@@ -654,14 +654,15 @@
                 // 각 파일에 대해 미리보기 생성
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    const reader = new FileReader();
+                    const reader = new FileReader(file);
                     
                     reader.onload = function(e) {
+                    	let url = window.URL.createObjectURL(file);
                         const previewItem = document.createElement('div');
                         previewItem.className = 'image-preview-item';
                         previewItem.innerHTML = `
-                            <img src="${e.target.result}" alt="이미지 미리보기">
-                            <button type="button" class="remove-btn" onclick="removeImageFromGrid(this, ${i})">
+                            <img src="\${e.target.result}" alt="이미지 미리보기">
+                            <button type="button" class="remove-btn" onclick="removeImageFromGrid(this, \${i})">
                                 <i class="fas fa-times"></i>
                             </button>
                         `;
@@ -687,7 +688,7 @@
 
         // 그리드에서 개별 이미지 제거
         function removeImageFromGrid(button, index) {
-            const input = document.querySelector('input[name="image_files[]"]');
+            const input = document.querySelector('input[name="image_files"]');
             const dt = new DataTransfer();
             const files = input.files;
             

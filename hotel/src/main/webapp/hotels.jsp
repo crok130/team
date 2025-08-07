@@ -1,4 +1,103 @@
+<%@page import="java.util.HashMap"%>
+<%@page import="java.util.Map"%>
+<%@page import="java.lang.foreign.AddressLayout"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.List"%>
+<%@page import="java.sql.*, utils.*,vo.*"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<%
+	Connection conn = DBCPUtil.getConnection();
+	PreparedStatement pstmt = null;
+	ResultSet rs = null;
+	List<PostVO> list = new ArrayList<>();
+	List<PostVO> facility = new ArrayList<>();
+	
+	// 요청 페이지
+	String strPage = request.getParameter("page"); 
+	int pageNum = 1;
+	if(strPage != null){
+		pageNum = Integer.parseInt(strPage);
+	}
+	
+	Criteria cri = new Criteria(pageNum, 10); // 한번에 보여줄 게시물 수는 알아서 수정
+	
+	
+	// 호텔 이름, 주소, 설명, 이미지
+	try{
+		String sql = "SELECT post_id,title,address,content,file_name,member_num FROM posts WHERE post_type = 'HOTEL' ";
+		sql += " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+		pstmt = conn.prepareStatement(sql);
+		pstmt.setInt(1,cri.getStartRow());
+		pstmt.setInt(2,cri.getPerPageNum());
+		
+		rs = pstmt.executeQuery();
+		while(rs.next()){
+			PostVO vo = new PostVO();
+			vo.setPostId(rs.getInt(1));
+			vo.setTitle(rs.getString(2));
+			vo.setAddress(rs.getString(3));
+			vo.setContent(rs.getString(4));
+			String fileStr = rs.getString(5);
+			vo.setMemberNum(rs.getLong(6));
+			if (fileStr != null && !fileStr.trim().equals("")) {
+				vo.setFileName((fileStr.split(",")));		
+			}			
+			list.add(vo);
+			if(vo.getAddress() == null){
+				
+			}
+		}		
+	}catch(Exception e){
+		e.printStackTrace();
+	}finally{
+		DBCPUtil.close(pstmt, rs, conn);
+	}
+	
+	// 호텔 시설
+	try{
+		conn = DBCPUtil.getConnection();
+		String sql = "SELECT title,content,parent_id FROM posts WHERE post_type = 'FACILITY'";
+		pstmt = conn.prepareStatement(sql);
+		rs = pstmt.executeQuery();
+		while(rs.next()){
+			PostVO post = new PostVO();
+			post.setTitle(rs.getString(1));
+			post.setContent(rs.getString(2));
+			post.setParentId(rs.getLong(3));
+			facility.add(post);
+		}
+	}catch(Exception e){
+		e.printStackTrace();
+	}finally{
+		DBCPUtil.close(pstmt,rs,conn);
+	}
+
+
+	// 게시글 목록을 저장할 List
+	
+
+
+	// 페이지 블럭(이동할 페이지 번호) 정보 처리
+	// 이동할 최대 페이지 번호를 계산하기 위한 전체 게시물 개수 검색
+	
+	conn = DBCPUtil.getConnection();
+	Statement stmt = conn.createStatement();
+	rs = stmt.executeQuery("SELECT count(*) FROM posts  WHERE post_type = 'HOTEL'");
+	// 전체 게시물(행) 개수를 저장할 변수
+	int totalCount = 0;
+	
+	if(rs.next()){
+		totalCount = rs.getInt(1);
+	}
+	System.out.println("전체 게시물 개수 : " + totalCount);
+	
+	DBCPUtil.close(rs, stmt, conn);
+	
+	PageMaker pm = new PageMaker(cri, totalCount, 10);
+	System.out.println(pm);
+	
+%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -642,155 +741,87 @@
                     </select>
                 </div>
             </div>
-
+		<%if(list != null){ %>
+        	<%for(PostVO p : list){ %>
             <div class="hotels-grid">
                 <!-- Hotel Card 1 -->
-                <div class="hotel-card">
-                    <div class="hotel-card-content">
-                        <div class="hotel-image">
-                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="서울 그랜드 호텔">
-                            <div class="image-gallery">
-                                <i class="fas fa-images"></i> 12장
-                            </div>
-                        </div>
-                        <div class="hotel-info">
-                            <div class="hotel-header">
-                                <div>
-                                    <h3 class="hotel-name">서울 그랜드 호텔</h3>
-                                    <div class="hotel-rating">
-                                        <span class="rating-stars">★★★★★</span>
-                                        <span class="rating-score">9.2</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hotel-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                서울시 중구 명동길 123
-                            </div>
-                            <div class="hotel-amenities">
-                                <span class="amenity-tag">무료 Wi-Fi</span>
-                                <span class="amenity-tag">수영장</span>
-                                <span class="amenity-tag">주차장</span>
-                                <span class="amenity-tag">피트니스</span>
-                            </div>
-                            <p class="hotel-description">
-                                서울 중심가에 위치한 럭셔리 호텔입니다. 명동 쇼핑가와 가까우며 훌륭한 시설과 서비스를 제공합니다.
-                            </p>
-                        </div>
-                        <div class="hotel-pricing">
-                            <div class="price-info">
-                                <div class="price-per-night">1박 기준</div>
-                                <div class="price-amount">
-                                    120,000<span class="price-currency">원</span>
-                                </div>
-                            </div>
-                            <a href="reservations.jsp?hotel=1" class="book-btn">예약하기</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hotel Card 2 -->
-                <div class="hotel-card">
-                    <div class="hotel-card-content">
-                        <div class="hotel-image">
-                            <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="부산 오션뷰 호텔">
-                            <div class="image-gallery">
-                                <i class="fas fa-images"></i> 8장
-                            </div>
-                        </div>
-                        <div class="hotel-info">
-                            <div class="hotel-header">
-                                <div>
-                                    <h3 class="hotel-name">부산 오션뷰 호텔</h3>
-                                    <div class="hotel-rating">
-                                        <span class="rating-stars">★★★★☆</span>
-                                        <span class="rating-score">8.7</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hotel-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                부산시 해운대구 해운대로 456
-                            </div>
-                            <div class="hotel-amenities">
-                                <span class="amenity-tag">오션뷰</span>
-                                <span class="amenity-tag">레스토랑</span>
-                                <span class="amenity-tag">스파</span>
-                                <span class="amenity-tag">발레파킹</span>
-                            </div>
-                            <p class="hotel-description">
-                                해운대 해변이 바로 앞에 있는 오션뷰 호텔입니다. 모든 객실에서 아름다운 바다 전망을 감상하실 수 있습니다.
-                            </p>
-                        </div>
-                        <div class="hotel-pricing">
-                            <div class="price-info">
-                                <div class="price-per-night">1박 기준</div>
-                                <div class="price-amount">
-                                    95,000<span class="price-currency">원</span>
-                                </div>
-                            </div>
-                            <a href="reservations.jsp?hotel=2" class="book-btn">예약하기</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hotel Card 3 -->
-                <div class="hotel-card">
-                    <div class="hotel-card-content">
-                        <div class="hotel-image">
-                            <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="제주 리조트">
-                            <div class="image-gallery">
-                                <i class="fas fa-images"></i> 15장
-                            </div>
-                        </div>
-                        <div class="hotel-info">
-                            <div class="hotel-header">
-                                <div>
-                                    <h3 class="hotel-name">제주 힐링 리조트</h3>
-                                    <div class="hotel-rating">
-                                        <span class="rating-stars">★★★★★</span>
-                                        <span class="rating-score">9.5</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hotel-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                제주시 애월읍 해안로 789
-                            </div>
-                            <div class="hotel-amenities">
-                                <span class="amenity-tag">수영장</span>
-                                <span class="amenity-tag">골프장</span>
-                                <span class="amenity-tag">키즈클럽</span>
-                                <span class="amenity-tag">조식포함</span>
-                            </div>
-                            <p class="hotel-description">
-                                제주의 아름다운 자연 속에서 힐링할 수 있는 프리미엄 리조트입니다. 가족 단위 여행객에게 최적화된 시설을 제공합니다.
-                            </p>
-                        </div>
-                        <div class="hotel-pricing">
-                            <div class="price-info">
-                                <div class="price-per-night">1박 기준</div>
-                                <div class="price-amount">
-                                    180,000<span class="price-currency">원</span>
-                                </div>
-                            </div>
-                            <a href="reservations.jsp?hotel=3" class="book-btn">예약하기</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+	   			<form action="reservations.jsp?postid=<%=p.getPostId() %>" method="get">
+	                <div class="hotel-card">
+	                    <div class="hotel-card-content">
+	                        <div class="hotel-image">
+	                        <%if(p.getFileName() != null){ %>
+	                            <img src="img/<%=p.getFileName()[0] %>" alt="호텔이미지가 존재 하지않습니다">
+	                            <input type="hidden" name="membernum" value="<%=p.getMemberNum()%>">
+	                            <div class="image-gallery">
+	                                <i class="fas fa-images"></i> <%=p.getFileName().length %>장
+	                            </div>
+	                         <%} %>
+	                        </div>
+	                        <div class="hotel-info">
+	                            <div class="hotel-header">
+	                                <div>
+	                                	<input type="hidden" name="postid" value="<%=p.getPostId()%>">
+	                                    <h3 class="hotel-name"><%=p.getTitle() %></h3>
+	                                    <div class="hotel-rating">
+	                                        <span class="rating-stars">★★★★★</span>
+	                                        <span class="rating-score">9.2</span>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <div class="hotel-location">
+	                                <i class="fas fa-map-marker-alt"></i>
+	                                <%=p.getAddress() %>
+	                            </div>
+	              		<%if(facility != null){ %>
+	              			<%for(PostVO s : facility){ %>
+	              				<%if(s.getParentId() == p.getPostId()){ %>
+	                            <div class="hotel-amenities">
+	                             	<span class="amenity-tag"><%=s.getTitle() %></span>						
+	                            </div>
+	                            <%} %>
+	                         <%} %>
+						<%} %>
+	                            <p class="hotel-description">
+	                                                        
+	                                <%= p.getContent() %>
+	                            </p>
+	                        </div>
+	                        <div class="hotel-pricing">
+	                        	<input type="submit" class="book-btn" value="예약하기">
+	                        </div>
+	                      
+	                    </div>
+	                </div>
+				</form>
+			</div>
+			<%} %>
+		<%} %>
             <!-- Pagination -->
             <div class="pagination">
-                <a href="#"><i class="fas fa-chevron-left"></i></a>
-                <a href="#" class="active">1</a>
-                <a href="#">2</a>
-                <a href="#">3</a>
-                <a href="#">4</a>
-                <a href="#">5</a>
-                <a href="#"><i class="fas fa-chevron-right"></i></a>
+            	<!-- 시작페이지 1페이지 이동 -->
+				<% if(pm.isFirst()) {%>
+				<a href="?page=1">처음</i></a>
+				<%} %>
+			<!-- 이전 페이지 이동 -->
+			<%if(pm.isPrev()){ %>
+				<a href="?page=<%=pm.getStartPage() - 1%>"><i class="fas fa-chevron-left"></i></a>
+			<%} %>
+		
+			<% for(int i = pm.getStartPage(); i <= pm.getEndPage(); i++){ %>
+				<a href="?page=<%=i%>" <%= cri.getPage() == i ? "class='active'" : "" %> ><%=i%></a>
+			<%} %>
+			
+			<!-- 다음 페이지  -->
+			<% if(pm.isNext()){ %>
+				<a href="?page=<%=pm.getEndPage() + 1%>"><i class="fas fa-chevron-right"></i></a>
+			<% } %>
+			<!-- 마지막 페이지 -->
+			<% if(pm.isLast()){%>
+			<%-- <a href="?page=<%=pm.getMaxPage()%>">[마지막]</a>	 --%>
+			<a href="?page=<%=pm.getMaxPage()%>">[마지막]</a>
+			<%} %>
             </div>
         </main>
     </div>
 </body>
-</html> 
+</html>
