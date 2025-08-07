@@ -432,7 +432,7 @@
             <div class="auth-buttons">
                 <a href="login.jsp" class="btn btn-outline">로그인</a>
                 <a href="register.jsp" class="btn btn-primary">회원가입</a>
-                <a href="logout.jsp" class="btn btn-outline logout-btn">
+                <a href="logout" class="btn btn-outline logout-btn">
                     <i class="fas fa-sign-out-alt"></i> 로그아웃
                 </a>
             </div>

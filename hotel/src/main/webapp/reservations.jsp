@@ -439,7 +439,7 @@
                  <a href="reservations.jsp" class="active">예약</a>
                  <a href="community.jsp">커뮤니티</a>
                  <a href="login.jsp">로그인</a>
-                 <a href="logout.jsp" class="logout-btn">
+                 <a href="logout" class="logout-btn">
                      <i class="fas fa-sign-out-alt"></i> 로그아웃
                  </a>
              </nav>

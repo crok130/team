@@ -405,7 +405,7 @@
         </div>
 
         <div class="form-container">
-            <form action="HotelRegisterServlet" method="POST" enctype="multipart/form-data">
+            <form action="upload" method="POST" enctype="multipart/form-data">
                 
                 <!-- 기본 정보 -->
                 <div class="form-section">

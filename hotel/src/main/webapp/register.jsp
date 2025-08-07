@@ -136,6 +136,22 @@
             background: #218838;
         }
 
+        .btn-send {
+            background: #007bff;
+            color: white;
+            width: 100%;
+            height: 48px;
+        }
+
+        .btn-send:hover {
+            background: #0056b3;
+        }
+
+        .btn-send:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
         .terms-agreement {
             background: #f8f9fa;
             border-radius: 10px;
@@ -195,6 +211,29 @@
             color: white;
         }
 
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message i {
+            margin-right: 0.5rem;
+        }
+
         @media (max-width: 768px) {
             .register-container {
                 margin: 0 1rem;
@@ -226,20 +265,33 @@
         </div>
 
         <div class="register-form">
-            <form action="#" method="POST">
+            <% if(request.getAttribute("msg") != null) { %>
+                <div class="message <%= request.getAttribute("msg").toString().contains("완료") ? "success" : "error" %>">
+                    <i class="fas fa-<%= request.getAttribute("msg").toString().contains("완료") ? "check-circle" : "exclamation-triangle" %>"></i>
+                    <%= request.getAttribute("msg") %>
+                </div>
+            <% } %>
+
+            <form action="user-register" method="POST" onsubmit="return validateForm()">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="username" class="required">사용자명</label>
                             <div class="input-container">
                                 <i class="fas fa-user input-icon"></i>
-                                <input type="text" id="username" name="username" placeholder="사용자명을 입력하세요" required>
+                                <input type="text" id="username" name="username" 
+                                       placeholder="사용자명을 입력하세요" 
+                                       required 
+                                       value="<%= request.getAttribute("username") != null ? request.getAttribute("username") : "" %>">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="name" class="required">실명</label>
                             <div class="input-container">
                                 <i class="fas fa-id-card input-icon"></i>
-                                <input type="text" id="name" name="name" placeholder="실명을 입력하세요" required>
+                                <input type="text" id="name" name="name" 
+                                       placeholder="실명을 입력하세요" 
+                                       required 
+                                       value="<%= request.getAttribute("name") != null ? request.getAttribute("name") : "" %>">
                             </div>
                         </div>
                     </div>
@@ -248,7 +300,10 @@
                         <label for="email" class="required">이메일</label>
                         <div class="input-container">
                             <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="email" name="email" placeholder="이메일을 입력하세요" required>
+                            <input type="email" id="email" name="email" 
+                                   placeholder="이메일을 입력하세요" 
+                                   required 
+                                   value="<%= request.getAttribute("email") != null ? request.getAttribute("email") : "" %>">
                         </div>
                     </div>
 
@@ -257,14 +312,29 @@
                             <label for="emailVerification" class="required">이메일 인증번호</label>
                             <div class="input-container">
                                 <i class="fas fa-key input-icon"></i>
-                                <input type="text" id="emailVerification" name="emailVerification" placeholder="인증번호를 입력하세요" required>
+                                <input type="text" id="emailVerification" name="emailVerification" 
+                                       placeholder="인증번호를 입력하세요" 
+                                       required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>&nbsp;</label>
-                            <button type="button" class="btn btn-verify" onclick="verifyEmail()">
-                                <i class="fas fa-check"></i> 인증 확인
+                            <button type="button" class="btn btn-send" onclick="sendVerificationCode()" id="sendBtn">
+                                <i class="fas fa-paper-plane"></i> 인증번호 발송
                             </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="button" class="btn btn-verify" onclick="verifyEmail()" id="verifyBtn">
+                                <i class="fas fa-check"></i> 인증번호 확인
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div id="verificationStatus" style="display: none; padding: 0.5rem; border-radius: 5px; font-size: 0.9rem;"></div>
                         </div>
                     </div>
 
@@ -290,14 +360,17 @@
                             <label for="phone">전화번호</label>
                             <div class="input-container">
                                 <i class="fas fa-phone input-icon"></i>
-                                <input type="tel" id="phone" name="phone" placeholder="010-1234-5678">
+                                <input type="tel" id="phone" name="phone" 
+                                       placeholder="010-1234-5678"
+                                       value="<%= request.getAttribute("phone") != null ? request.getAttribute("phone") : "" %>">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="birthDate">생년월일</label>
                             <div class="input-container">
                                 <i class="fas fa-calendar input-icon"></i>
-                                <input type="date" id="birthDate" name="birthDate">
+                                <input type="date" id="birthDate" name="birthDate"
+                                       value="<%= request.getAttribute("birthDate") != null ? request.getAttribute("birthDate") : "" %>">
                             </div>
                         </div>
                     </div>
@@ -309,8 +382,8 @@
                                 <i class="fas fa-venus-mars input-icon"></i>
                                 <select id="gender" name="gender">
                                     <option value="">선택하세요</option>
-                                    <option value="M">남성</option>
-                                    <option value="F">여성</option>
+                                    <option value="M" <%= "M".equals(request.getAttribute("gender")) ? "selected" : "" %>>남성</option>
+                                    <option value="F" <%= "F".equals(request.getAttribute("gender")) ? "selected" : "" %>>여성</option>
                                 </select>
                             </div>
                         </div>
@@ -347,7 +420,8 @@
                         </div>
                         <div class="checkbox-group">
                             <label>
-                                <input type="checkbox" id="agreeMarketing" name="agreeMarketing">
+                                <input type="checkbox" id="agreeMarketing" name="agreeMarketing"
+                                       <%= "checked".equals(request.getAttribute("agreeMarketing")) ? "checked" : "" %>>
                                 <span>(선택) 마케팅 정보 수신에 동의합니다</span>
                             </label>
                         </div>
@@ -365,10 +439,72 @@
     </div>
 
     <script>
+        // 인증번호 발송
+        function sendVerificationCode() {
+            const emailInput = document.getElementById('email');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            if (!emailInput.value) {
+                alert('이메일을 먼저 입력해주세요.');
+                emailInput.focus();
+                return;
+            }
+            
+            // 이메일 형식 검증
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value)) {
+                alert('올바른 이메일 형식을 입력해주세요.');
+                emailInput.focus();
+                return;
+            }
+            
+            // 버튼 비활성화
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 발송 중...';
+            
+            // AJAX 요청
+            fetch('email-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=send&email=' + encodeURIComponent(emailInput.value)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    sendBtn.innerHTML = '<i class="fas fa-check"></i> 발송 완료';
+                    sendBtn.style.background = '#28a745';
+                    alert(data.message);
+                } else {
+                    sendBtn.innerHTML = '<i class="fas fa-times"></i> 발송 실패';
+                    sendBtn.style.background = '#dc3545';
+                    alert(data.message);
+                    setTimeout(() => {
+                        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 인증번호 발송';
+                        sendBtn.style.background = '#007bff';
+                        sendBtn.disabled = false;
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                sendBtn.innerHTML = '<i class="fas fa-times"></i> 발송 실패';
+                sendBtn.style.background = '#dc3545';
+                alert('인증번호 발송에 실패했습니다.');
+                setTimeout(() => {
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 인증번호 발송';
+                    sendBtn.style.background = '#007bff';
+                    sendBtn.disabled = false;
+                }, 2000);
+            });
+        }
+        
+        // 인증번호 확인
         function verifyEmail() {
             const emailInput = document.getElementById('email');
             const verificationInput = document.getElementById('emailVerification');
-            const verifyBtn = document.querySelector('.btn-verify');
+            const verifyBtn = document.getElementById('verifyBtn');
             
             if (!emailInput.value) {
                 alert('이메일을 먼저 입력해주세요.');
@@ -382,30 +518,89 @@
                 return;
             }
             
-            // 임시 인증 로직 (실제로는 서버와 통신)
-            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 확인 중...';
-            verifyBtn.disabled = true;
-            
-            setTimeout(() => {
-                // 임시로 "123456"을 올바른 인증번호로 설정
-                if (verificationInput.value === '123456') {
+            // AJAX 요청
+            fetch('email-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=verify&code=' + encodeURIComponent(verificationInput.value)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('verificationStatus');
+                if (data.success) {
                     verifyBtn.innerHTML = '<i class="fas fa-check"></i> 인증 완료';
                     verifyBtn.style.background = '#28a745';
+                    verifyBtn.disabled = true;
                     verificationInput.style.borderColor = '#28a745';
                     verificationInput.disabled = true;
-                    alert('이메일 인증이 완료되었습니다.');
+                    
+                    // 상태 메시지 표시
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.background = '#d4edda';
+                    statusDiv.style.color = '#155724';
+                    statusDiv.style.border = '1px solid #c3e6cb';
                 } else {
                     verifyBtn.innerHTML = '<i class="fas fa-times"></i> 인증 실패';
                     verifyBtn.style.background = '#dc3545';
                     verificationInput.style.borderColor = '#dc3545';
-                    alert('인증번호가 올바르지 않습니다. 다시 확인해주세요.');
+                    
+                    // 상태 메시지 표시
+                    statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + data.message;
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.background = '#f8d7da';
+                    statusDiv.style.color = '#721c24';
+                    statusDiv.style.border = '1px solid #f5c6cb';
+                    
                     setTimeout(() => {
                         verifyBtn.innerHTML = '<i class="fas fa-check"></i> 인증 확인';
                         verifyBtn.style.background = '#28a745';
                         verifyBtn.disabled = false;
-                    }, 2000);
+                        statusDiv.style.display = 'none';
+                    }, 3000);
                 }
-            }, 1500);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                verifyBtn.innerHTML = '<i class="fas fa-times"></i> 인증 실패';
+                verifyBtn.style.background = '#dc3545';
+                
+                const statusDiv = document.getElementById('verificationStatus');
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 인증번호 확인에 실패했습니다.';
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.style.border = '1px solid #f5c6cb';
+                
+                setTimeout(() => {
+                    verifyBtn.innerHTML = '<i class="fas fa-check"></i> 인증 확인';
+                    verifyBtn.style.background = '#28a745';
+                    verifyBtn.disabled = false;
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            });
+        }
+        
+        // 폼 검증
+        function validateForm() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('비밀번호가 일치하지 않습니다.');
+                return false;
+            }
+            
+            // 비밀번호 복잡도 검증
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                alert('비밀번호는 8자 이상이며, 영문, 숫자, 특수문자를 포함해야 합니다.');
+                return false;
+            }
+            
+            return true;
         }
         
         // 전체 동의 체크박스
