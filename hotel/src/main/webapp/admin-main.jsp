@@ -430,7 +430,7 @@
             <div class="auth-buttons">
                 <a href="admin-login.jsp" class="btn btn-outline">관리자 로그인</a>
                 <a href="admin-register.jsp" class="btn btn-primary">매니저 가입</a>
-                <a href="logout.jsp" class="btn btn-outline logout-btn">
+                <a href="logout" class="btn btn-outline logout-btn">
                     <i class="fas fa-sign-out-alt"></i> 로그아웃
                 </a>
             </div>
