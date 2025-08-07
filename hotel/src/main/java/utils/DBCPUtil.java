@@ -7,12 +7,19 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import jakarta.servlet.ServletContext;
+
 /**
  * Connection Pool 에 등록된
  * Connection 제공 및 자원해제 담당 class
  */
 public class DBCPUtil {
 	
+	// BoardDAO 생성
+	public DBCPUtil(ServletContext application) {
+		// TODO Auto-generated constructor stub
+	}
+
 	/**
 	 * Connection 객체 반환
 	 */
