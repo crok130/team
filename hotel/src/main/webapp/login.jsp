@@ -98,7 +98,7 @@
 
         .form-title p {
             color: #666;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .form-group {
@@ -108,41 +108,47 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: 600;
             color: #333;
+            font-weight: 600;
+            font-size: 0.9rem;
         }
 
         .input-container {
             position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .input-icon {
             position: absolute;
             left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
+            color: #666;
+            font-size: 1rem;
         }
 
         .form-group input {
             width: 100%;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
             font-size: 1rem;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            background: #f8f9fa;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #2c5aa0;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .form-options {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
         }
 
         .remember-me {
@@ -153,10 +159,15 @@
             cursor: pointer;
         }
 
+        .remember-me input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
         .forgot-password {
-            color: #2c5aa0;
+            color: #667eea;
             text-decoration: none;
-            font-size: 0.9rem;
+            font-weight: 600;
         }
 
         .forgot-password:hover {
@@ -165,26 +176,28 @@
 
         .btn {
             width: 100%;
-            padding: 0.75rem;
-            background: #2c5aa0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .btn:hover {
-            background: #1e3d6f;
             transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
         .register-link {
             text-align: center;
+            margin-top: 1.5rem;
             color: #666;
+            font-size: 0.9rem;
         }
 
         .register-link a {
@@ -195,6 +208,16 @@
 
         .register-link a:hover {
             text-decoration: underline;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            border-left: 4px solid #c62828;
         }
 
         @media (max-width: 768px) {
@@ -230,12 +253,31 @@
                 <p>호텔 예약 서비스에 오신 것을 환영합니다</p>
             </div>
 
-            <form action="#" method="POST">
+            <!-- 에러 메시지 표시 -->
+            <% 
+            String msg = (String) request.getAttribute("msg");
+            if (msg == null) {
+                String msgParam = request.getParameter("msg");
+                if ("rejected".equals(msgParam)) {
+                    msg = "승인 거절되었습니다. 관리자에게 문의하세요.";
+                } else if ("pending".equals(msgParam)) {
+                    msg = "계정이 승인 대기 중입니다. 관리자 승인 후 로그인 가능합니다.";
+                }
+            }
+            %>
+            <% if (msg != null) { %>
+                <div class="error-message">
+                    <%= msg %>
+                </div>
+            <% } %>
+
+            <form action="user-login" method="POST">
                 <div class="form-group">
-                    <label for="email">이메일</label>
+                    <label for="username">아이디</label>
                     <div class="input-container">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="이메일을 입력하세요" required>
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="username" name="username" placeholder="아이디를 입력하세요" 
+                               value="<%= request.getAttribute("username") != null ? request.getAttribute("username") : "" %>" required>
                     </div>
                 </div>
 
@@ -249,14 +291,30 @@
 
                 <div class="form-options">
                     <label class="remember-me">
-                        <input type="checkbox" name="remember" id="remember">
+                        <input type="checkbox" name="remember" id="remember" 
+                               <%= "checked".equals(request.getAttribute("remember")) ? "checked" : "" %>>
                         로그인 상태 유지
                     </label>
-                    <a href="#" class="forgot-password">비밀번호 찾기</a>
+                    <a href="find-password.jsp" class="forgot-password">비밀번호 찾기</a>
                 </div>
 
                 <button type="submit" class="btn">로그인</button>
             </form>
+
+            <!-- 소셜 로그인 구분선 -->
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                    <div style="flex: 1; height: 1px; background-color: #ddd;"></div>
+                    <span style="color: #666; font-size: 0.9rem;">또는</span>
+                    <div style="flex: 1; height: 1px; background-color: #ddd;"></div>
+                </div>
+            </div>
+
+            <!-- 카카오 로그인 버튼 -->
+            <button type="button" id="kakaoLoginBtn" class="btn" style="background-color: #FEE500; color: #000000; border: 2px solid #FEE500;" onclick="KakaoLogin.login()">
+                <i class="fas fa-comment" style="margin-right: 8px;"></i>
+                카카오로 로그인
+            </button>
 
             <div class="register-link">
                 아직 계정이 없으신가요? <a href="register.jsp">회원가입</a>
@@ -270,5 +328,53 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // 페이지 로드 시 자동 로그인 시도
+        window.onload = function() {
+            const cookies = document.cookie.split(';');
+            let hasAutoLoginCookies = false;
+            
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'autoLogin_username' || name === 'autoLogin_userType' || name === 'autoLogin_memberNum') {
+                    hasAutoLoginCookies = true;
+                    break;
+                }
+            }
+            
+            if (hasAutoLoginCookies) {
+                // 자동 로그인 시도
+                fetch('user-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'autoLogin=true'
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        // 자동 로그인 실패 시 쿠키 삭제
+                        deleteAutoLoginCookies();
+                    }
+                })
+                .catch(error => {
+                    console.error('Auto login error:', error);
+                    // 에러 시 쿠키 삭제
+                    deleteAutoLoginCookies();
+                });
+            }
+        };
+        
+        // 자동 로그인 쿠키 삭제 함수
+        function deleteAutoLoginCookies() {
+            const cookieNames = ['autoLogin_username', 'autoLogin_userType', 'autoLogin_memberNum'];
+            cookieNames.forEach(name => {
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            });
+        }
+    </script>
 </body>
 </html> 

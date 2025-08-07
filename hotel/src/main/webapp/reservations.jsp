@@ -1,6 +1,86 @@
+<!-- 게시판 상세보기  -->
+<%@page import="java.util.Collection"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="ko">
+<%@ page import="java.util.ArrayList, java.sql.*, utils.DBCPUtil, vo.PostVO" %>
+
+<!-- 
+	예약 요약에 있는 
+	호텔이름(title), 호텔주소(address), 호텔이미지(file_name)	
+-->
+<%
+	String postidstr = request.getParameter("postid");
+	int postid = Integer.parseInt(postidstr);
+	Connection conn = DBCPUtil.getConnection();
+	PreparedStatement pstmt = null;
+	ResultSet rs = null;
+	PostVO vo = new PostVO();
+	
+	
+	try{
+		String sql = "SELECT title, address, file_name FROM posts WHERE post_type = 'HOTEL' AND post_id = ? ";
+		pstmt = conn.prepareStatement(sql);
+		pstmt.setInt(1, postid);
+		rs = pstmt.executeQuery();
+		if(rs.next()){
+
+			vo.setTitle(rs.getString(1));
+			vo.setAddress(rs.getString(2));
+		    String fileNamesString = rs.getString(3); // 예시: "a.jpg,b.jpg,c.jpg"
+		    
+		    if(fileNamesString != null && !fileNamesString.trim().equals("")){
+		    	vo.setFileName((fileNamesString.split(",")));	
+			}		   
+		}		
+	}catch(Exception e){
+		e.printStackTrace();
+	}finally{
+		DBCPUtil.close(rs, pstmt, conn);
+	} 
+	
+	// 객실 타입 정보를 저장할 리스트 생성
+	ArrayList<PostVO> roomTypes = new ArrayList<PostVO>();
+	// 편의시설 정보를 저장할 리스트 생성
+	ArrayList<PostVO> facility = new ArrayList<PostVO>();
+
+	// 객실 타입 정보 가져오기
+	try {
+	    conn = DBCPUtil.getConnection();
+	    String sql = "SELECT title, content,price FROM posts WHERE post_type = 'ROOM_TYPE' AND parent_id = ?";
+	    pstmt = conn.prepareStatement(sql);
+	    pstmt.setInt(1, postid);
+	    rs = pstmt.executeQuery();
+	    while(rs.next()){
+	        PostVO post = new PostVO();
+	        post.setTitle(rs.getString(1));   // 객실 제목
+	        post.setContent(rs.getString(2)); // 객실 설명
+	        post.setPrices(rs.getInt(3));
+	        roomTypes.add(post);
+	    }
+
+	} catch(Exception e) {
+		e.printStackTrace();
+	}finally { DBCPUtil.close(pstmt, rs, conn); }
+
+	// 편의시설 정보 가져오기
+	try {
+	    conn = DBCPUtil.getConnection();
+	    String sql = "SELECT title FROM posts WHERE post_type = 'FACILITY' AND parent_id = ?";
+	    pstmt = conn.prepareStatement(sql);
+	    pstmt.setInt(1, postid);
+	    rs = pstmt.executeQuery();
+	    while(rs.next()){
+	        PostVO post = new PostVO();
+	        post.setTitle(rs.getString(1));   // 편의시설 이름
+	        facility.add(post);
+	    }
+	} catch(Exception e) {
+		e.printStackTrace();
+	}finally{ 
+		DBCPUtil.close(pstmt, rs, conn); 
+	}
+%>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,12 +147,18 @@
             color: white !important;
             padding: 0.5rem 1rem;
             border-radius: 6px;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .logout-btn:hover {
             background: #c82333;
             color: white !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
         }
 
         /* Main Container */
@@ -433,7 +519,7 @@
                  <a href="reservations.jsp" class="active">예약</a>
                  <a href="community.jsp">커뮤니티</a>
                  <a href="login.jsp">로그인</a>
-                 <a href="logout.jsp" class="logout-btn">
+                 <a href="logout" class="logout-btn">
                      <i class="fas fa-sign-out-alt"></i> 로그아웃
                  </a>
              </nav>
@@ -499,62 +585,30 @@
 
                 <!-- Room Selection -->
                 <h3>객실 타입 선택</h3>
-                
+     	<%if(roomTypes != null){ %>
+       		<%for(PostVO r : roomTypes){ %>
                 <div class="room-options">
                     <label class="room-card">
                         <input type="radio" name="roomType" value="standard" required>
                         <div class="room-header">
-                            <div class="room-name">스탠다드 룸</div>
-                            <div class="room-price">120,000원/박</div>
+                            <div class="room-name"><%=r.getTitle() %></div>
+                            <div class="room-price"><%=r.getPrices() %>/박</div>
                         </div>
                         <div class="room-description">
-                            편안한 스탠다드 객실입니다. 기본적인 편의시설을 갖춘 아늑한 공간을 제공합니다.
+                            <%=r.getContent() %>
                         </div>
+              
                         <div class="room-amenities">
-                            <span class="amenity-tag">무료 Wi-Fi</span>
-                            <span class="amenity-tag">에어컨</span>
-                            <span class="amenity-tag">TV</span>
-                            <span class="amenity-tag">미니바</span>
-                        </div>
-                    </label>
-
-                    <label class="room-card">
-                        <input type="radio" name="roomType" value="deluxe">
-                        <div class="room-header">
-                            <div class="room-name">디럭스 룸</div>
-                            <div class="room-price">180,000원/박</div>
-                        </div>
-                        <div class="room-description">
-                            넓고 고급스러운 디럭스 객실입니다. 더 많은 공간과 프리미엄 편의시설을 제공합니다.
-                        </div>
-                        <div class="room-amenities">
-                            <span class="amenity-tag">무료 Wi-Fi</span>
-                            <span class="amenity-tag">시티뷰</span>
-                            <span class="amenity-tag">킹베드</span>
-                            <span class="amenity-tag">욕조</span>
-                            <span class="amenity-tag">룸서비스</span>
-                        </div>
-                    </label>
-
-                    <label class="room-card">
-                        <input type="radio" name="roomType" value="suite">
-                        <div class="room-header">
-                            <div class="room-name">스위트 룸</div>
-                            <div class="room-price">280,000원/박</div>
-                        </div>
-                        <div class="room-description">
-                            최고급 스위트 객실입니다. 별도의 거실과 침실, 최고 수준의 편의시설을 제공합니다.
-                        </div>
-                        <div class="room-amenities">
-                            <span class="amenity-tag">무료 Wi-Fi</span>
-                            <span class="amenity-tag">오션뷰</span>
-                            <span class="amenity-tag">거실 분리</span>
-                            <span class="amenity-tag">자쿠지</span>
-                            <span class="amenity-tag">컨시어지</span>
+                     <%if(facility != null){ %>
+                		<%for(PostVO f : facility){ %>
+                            <span class="amenity-tag"><%=f.getTitle() %></span>
+						<%} %>
+                     <%} %>
                         </div>
                     </label>
                 </div>
-
+       		<%} %>
+		<%} %>
                 <!-- Guest Information -->
                 <h3>투숙객 정보</h3>
                 
@@ -658,12 +712,12 @@
 
             <div class="hotel-info">
                 <div class="hotel-image">
-                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" alt="서울 그랜드 호텔">
+                    <img src="img/<%=vo.getFileName()[0] %>" alt="서울 그랜드 호텔">
                 </div>
                 <div class="hotel-details">
-                    <h4>서울 그랜드 호텔</h4>
+                    <h4><%=vo.getTitle() %></h4>
                     <div class="rating">★★★★★ 9.2</div>
-                    <small>서울시 중구 명동길 123</small>
+                    <small><%=vo.getAddress() %></small>
                 </div>
             </div>
 
@@ -707,4 +761,5 @@
         </div>
     </div>
 </body>
-</html> 
+
+</html>  

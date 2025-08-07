@@ -11,6 +11,10 @@ GRANT UNLIMITED TABLESPACE TO hotel_admin;
 GRANT CREATE VIEW TO hotel_admin;
 GRANT CREATE SYNONYM TO hotel_admin;
 
+SELECT * from posts WHERE member_num = 3;
+
+
+
 -- ====================================
 -- 2. 사용자 전환 후 테이블 생성 (hotel_admin으로 접속)
 -- ====================================
@@ -32,6 +36,9 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 가입 일시
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- 정보 수정 일시
 );
+
+SELECT * FROM posts;
+
 
 -- ====================
 -- 2. 통합 게시글 테이블 (IDENTITY 방식)
@@ -56,8 +63,25 @@ CREATE TABLE posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 작성 일시
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- 수정 일시
 );
+<<<<<<< HEAD
 select * from reservations;
+=======
+SELECT * from posts;
+>>>>>>> 725964e36af5e01a29e76ddb95964fd082c6068d
 
+SELECT * FROM posts WHERE post_type = 'FACILITY';
+
+-- 1. 하위 posts(객실, 시설 등) 삭제
+DELETE FROM posts WHERE parent_id = 2;
+
+-- 2. 예약 데이터 삭제
+DELETE FROM reservations WHERE hotel_post_id = 2;
+
+-- 3. 댓글/리뷰 삭제
+DELETE FROM comments WHERE post_id = 2;
+
+-- 4. 호텔(부모) 삭제
+DELETE FROM posts WHERE post_id = 2;
 -- ====================
 -- 3. 예약 테이블 (IDENTITY 방식) - 상태 간소화
 -- ====================

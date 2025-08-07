@@ -127,12 +127,21 @@
             background: #dc3545;
             color: white !important;
             border-color: #dc3545;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .logout-btn:hover {
             background: #c82333 !important;
             border-color: #c82333;
             color: white !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
         }
 
         /* Hero Section */
@@ -421,7 +430,7 @@
             <div class="auth-buttons">
                 <a href="admin-login.jsp" class="btn btn-outline">관리자 로그인</a>
                 <a href="admin-register.jsp" class="btn btn-primary">매니저 가입</a>
-                <a href="logout.jsp" class="btn btn-outline logout-btn">
+                <a href="logout" class="btn btn-outline logout-btn">
                     <i class="fas fa-sign-out-alt"></i> 로그아웃
                 </a>
             </div>

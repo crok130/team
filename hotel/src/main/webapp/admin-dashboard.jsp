@@ -821,7 +821,6 @@
 						    
 						    
 
-							 // 문자열로 변환
 				for(int s : numbers){
 						   	try{
 						   		conn = DBCPUtil.getConnection();

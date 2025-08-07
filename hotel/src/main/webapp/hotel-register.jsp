@@ -214,6 +214,97 @@
             background: #e8f2ff;
         }
 
+        .image-preview-container {
+            margin-top: 1rem;
+        }
+
+        .image-preview {
+            width: 200px;
+            height: 150px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .image-preview.has-image {
+            border: 2px solid #2c5aa0;
+            background: white;
+        }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .image-preview-placeholder {
+            width: 150px;
+            height: 120px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .image-preview-item {
+            position: relative;
+            width: 150px;
+            height: 120px;
+            border: 2px solid #2c5aa0;
+            border-radius: 8px;
+            background: white;
+            overflow: hidden;
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .image-preview-item .remove-btn:hover {
+            background: rgba(220, 53, 69, 1);
+        }
+
         .button-group {
             display: flex;
             gap: 1rem;
@@ -314,7 +405,7 @@
         </div>
 
         <div class="form-container">
-            <form action="HotelRegisterServlet" method="POST" enctype="multipart/form-data">
+            <form action="upload" method="POST" enctype="multipart/form-data">
                 
                 <!-- 기본 정보 -->
                 <div class="form-section">
@@ -384,19 +475,19 @@
                             <div class="dynamic-item">
                                 <div class="form-group">
                                     <label>객실 타입명 *</label>
-                                    <input type="text" name="room_titles[]" placeholder="예: 스탠다드룸" required>
+                                    <input type="text" name="room_titles" placeholder="예: 스탠다드룸" required>
                                 </div>
                                 <div class="form-group">
                                     <label>1박 요금 (원) *</label>
-                                    <input type="number" name="room_prices[]" placeholder="120000" min="0" required>
+                                    <input type="number" name="room_prices" placeholder="120000" min="0" required>
                                 </div>
                                 <div class="form-group">
                                     <label>객실 개수 *</label>
-                                    <input type="number" name="room_counts[]" placeholder="15" min="1" required>
+                                    <input type="number" name="room_counts" placeholder="15" min="1" required>
                                 </div>
                                 <div class="form-group">
                                     <label>객실 설명</label>
-                                    <input type="text" name="room_contents[]" placeholder="객실에 대한 간단한 설명">
+                                    <input type="text" name="room_contents" placeholder="객실에 대한 간단한 설명">
                                 </div>
                                 <button type="button" class="btn-remove" onclick="removeRoomType(this)">
                                     <i class="fas fa-trash"></i>
@@ -420,11 +511,11 @@
                             <div class="dynamic-item">
                                 <div class="form-group">
                                     <label>시설명 *</label>
-                                    <input type="text" name="facility_titles[]" placeholder="예: 무료 Wi-Fi" required>
+                                    <input type="text" name="facility_titles" placeholder="예: 무료 Wi-Fi" required>
                                 </div>
                                 <div class="form-group">
                                     <label>시설 설명</label>
-                                    <input type="text" name="facility_contents[]" placeholder="시설에 대한 상세 설명">
+                                    <input type="text" name="facility_contents" placeholder="시설에 대한 상세 설명">
                                 </div>
                                 <button type="button" class="btn-remove" onclick="removeFacility(this)">
                                     <i class="fas fa-trash"></i>
@@ -444,30 +535,24 @@
                     </div>
                     
                     <div class="dynamic-section">
-                        <div id="hotelImages">
-                            <div class="dynamic-item">
-                                <div class="form-group">
-                                    <label>이미지 제목 *</label>
-                                    <input type="text" name="image_titles[]" placeholder="예: 호텔 외관" required>
+                        <div class="form-group">
+                            <label>이미지 파일들 * (여러 개 선택 가능)</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" name="image_files" class="file-input" accept="image/*" multiple required onchange="previewMultipleImages(this)">
+                                <div class="file-input-display">
+                                    <i class="fas fa-upload"></i>
+                                    <span>이미지들 선택 (Ctrl+클릭으로 여러 개 선택)</span>
                                 </div>
-                                <div class="form-group">
-                                    <label>이미지 파일 *</label>
-                                    <div class="file-input-wrapper">
-                                        <input type="file" name="image_files[]" class="file-input" accept="image/*" required>
-                                        <div class="file-input-display">
-                                            <i class="fas fa-upload"></i>
-                                            <span>이미지 선택</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn-remove" onclick="removeImage(this)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
                             </div>
                         </div>
-                        <button type="button" class="btn-add" onclick="addImage()">
-                            <i class="fas fa-plus"></i> 이미지 추가
-                        </button>
+                        <div class="image-preview-container">
+                            <div id="imagePreviewGrid" class="image-preview-grid">
+                                <div class="image-preview-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>선택된 이미지들이 여기에 표시됩니다</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -492,19 +577,19 @@
             newItem.innerHTML = `
                 <div class="form-group">
                     <label>객실 타입명 *</label>
-                    <input type="text" name="room_titles[]" placeholder="예: 디럭스룸" required>
+                    <input type="text" name="room_titles" placeholder="예: 디럭스룸" required>
                 </div>
                 <div class="form-group">
                     <label>1박 요금 (원) *</label>
-                    <input type="number" name="room_prices[]" placeholder="180000" min="0" required>
+                    <input type="number" name="room_prices" placeholder="180000" min="0" required>
                 </div>
                 <div class="form-group">
                     <label>객실 개수 *</label>
-                    <input type="number" name="room_counts[]" placeholder="10" min="1" required>
+                    <input type="number" name="room_counts" placeholder="10" min="1" required>
                 </div>
                 <div class="form-group">
                     <label>객실 설명</label>
-                    <input type="text" name="room_contents[]" placeholder="객실에 대한 간단한 설명">
+                    <input type="text" name="room_contents" placeholder="객실에 대한 간단한 설명">
                 </div>
                 <button type="button" class="btn-remove" onclick="removeRoomType(this)">
                     <i class="fas fa-trash"></i>
@@ -530,11 +615,11 @@
             newItem.innerHTML = `
                 <div class="form-group">
                     <label>시설명 *</label>
-                    <input type="text" name="facility_titles[]" placeholder="예: 수영장" required>
+                    <input type="text" name="facility_titles" placeholder="예: 수영장" required>
                 </div>
                 <div class="form-group">
                     <label>시설 설명</label>
-                    <input type="text" name="facility_contents[]" placeholder="시설에 대한 상세 설명">
+                    <input type="text" name="facility_contents" placeholder="시설에 대한 상세 설명">
                 </div>
                 <button type="button" class="btn-remove" onclick="removeFacility(this)">
                     <i class="fas fa-trash"></i>
@@ -552,45 +637,75 @@
             }
         }
 
-        // 이미지 추가/제거
-        function addImage() {
-            const container = document.getElementById('hotelImages');
-            const newItem = document.createElement('div');
-            newItem.className = 'dynamic-item';
-            newItem.innerHTML = `
-                <div class="form-group">
-                    <label>이미지 제목 *</label>
-                    <input type="text" name="image_titles[]" placeholder="예: 로비" required>
-                </div>
-                <div class="form-group">
-                    <label>이미지 파일 *</label>
-                    <div class="file-input-wrapper">
-                        <input type="file" name="image_files[]" class="file-input" accept="image/*" required>
-                        <div class="file-input-display">
-                            <i class="fas fa-upload"></i>
-                            <span>이미지 선택</span>
-                        </div>
-                    </div>
-                </div>
-                <button type="button" class="btn-remove" onclick="removeImage(this)">
-                    <i class="fas fa-trash"></i>
-                </button>
-            `;
-            container.appendChild(newItem);
-        }
-
-        function removeImage(button) {
-            const container = document.getElementById('hotelImages');
-            if (container.children.length > 1) {
-                button.parentElement.remove();
+        // 여러 이미지 미리보기 함수
+        function previewMultipleImages(input) {
+            const files = input.files;
+            const previewGrid = document.getElementById('imagePreviewGrid');
+            
+            // 기존 미리보기 초기화
+            previewGrid.innerHTML = '';
+            
+            if (files.length > 0) {
+                // 파일 입력 표시 업데이트
+                const display = input.nextElementSibling;
+                const span = display.querySelector('span');
+                span.textContent = `${files.length}개의 이미지 선택됨`;
+                
+                // 각 파일에 대해 미리보기 생성
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader(file);
+                    
+                    reader.onload = function(e) {
+                    	let url = window.URL.createObjectURL(file);
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'image-preview-item';
+                        previewItem.innerHTML = `
+                            <img src="\${e.target.result}" alt="이미지 미리보기">
+                            <button type="button" class="remove-btn" onclick="removeImageFromGrid(this, \${i})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        previewGrid.appendChild(previewItem);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
             } else {
-                alert('최소 하나의 이미지는 필요합니다.');
+                // 파일이 없을 때 플레이스홀더 표시
+                previewGrid.innerHTML = `
+                    <div class="image-preview-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>선택된 이미지들이 여기에 표시됩니다</span>
+                    </div>
+                `;
+                
+                const display = input.nextElementSibling;
+                const span = display.querySelector('span');
+                span.textContent = '이미지들 선택 (Ctrl+클릭으로 여러 개 선택)';
             }
         }
 
-        // 파일 입력 시 표시 업데이트
+        // 그리드에서 개별 이미지 제거
+        function removeImageFromGrid(button, index) {
+            const input = document.querySelector('input[name="image_files"]');
+            const dt = new DataTransfer();
+            const files = input.files;
+            
+            // 해당 인덱스를 제외한 파일들만 유지
+            for (let i = 0; i < files.length; i++) {
+                if (i !== index) {
+                    dt.items.add(files[i]);
+                }
+            }
+            
+            input.files = dt.files;
+            previewMultipleImages(input);
+        }
+
+        // 파일 입력 시 표시 업데이트 (이미지가 아닌 경우에만)
         document.addEventListener('change', function(e) {
-            if (e.target.type === 'file') {
+            if (e.target.type === 'file' && !e.target.hasAttribute('multiple')) {
                 const display = e.target.nextElementSibling;
                 const span = display.querySelector('span');
                 if (e.target.files.length > 0) {

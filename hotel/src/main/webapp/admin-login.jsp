@@ -106,49 +106,6 @@
             color: #999;
         }
 
-        .user-type-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .user-type-option {
-            padding: 1rem;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: white;
-        }
-
-        .user-type-option:hover {
-            border-color: #2c5aa0;
-            background: #f0f8ff;
-        }
-
-        .user-type-option.selected {
-            border-color: #2c5aa0;
-            background: #f0f8ff;
-            color: #2c5aa0;
-        }
-
-        .user-type-option input[type="radio"] {
-            display: none;
-        }
-
-        .user-type-option i {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .user-type-option span {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
         .form-options {
             display: flex;
             justify-content: space-between;
@@ -270,6 +227,30 @@
             margin: 0;
         }
 
+        /* Message Styles */
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message i {
+            margin-right: 0.5rem;
+        }
+
         @media (max-width: 768px) {
             .admin-login-container {
                 margin: 0 1rem;
@@ -296,30 +277,34 @@
         </div>
 
         <div class="login-form-section">
+            <% if(request.getAttribute("msg") != null) { %>
+                <% 
+                String msg = (String) request.getAttribute("msg");
+                String messageClass = msg.contains("오류") || msg.contains("실패") || msg.contains("잘못") || 
+                                   msg.contains("거절") || msg.contains("대기") ? "error" : "success";
+                String iconClass = msg.contains("오류") || msg.contains("실패") || msg.contains("잘못") || 
+                                 msg.contains("거절") || msg.contains("대기") ? "exclamation-triangle" : "check-circle";
+                %>
+                <div class="message <%= messageClass %>">
+                    <i class="fas fa-<%= iconClass %>"></i>
+                    <%= msg %>
+                </div>
+            <% } %>
+            
             <div class="security-notice">
                 <i class="fas fa-shield-alt"></i>
                 <p>관리자 계정은 보안상 중요한 계정입니다. 안전한 장소에서 로그인해주세요.</p>
             </div>
 
-                               <form action="admin-main.jsp" method="POST">
-                <div class="user-type-selector">
-                    <label class="user-type-option" for="admin">
-                        <input type="radio" id="admin" name="userType" value="ADMIN" required>
-                        <i class="fas fa-user-cog"></i>
-                        <span>시스템 관리자</span>
-                    </label>
-                    <label class="user-type-option selected" for="hotel-manager">
-                        <input type="radio" id="hotel-manager" name="userType" value="HOTEL_MANAGER" checked required>
-                        <i class="fas fa-hotel"></i>
-                        <span>호텔 매니저</span>
-                    </label>
-                </div>
-                
+            <form action="admin-login" method="POST">
                 <div class="form-group">
-                    <label for="email">이메일</label>
+                    <label for="username">아이디</label>
                     <div class="input-container">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="관리자 이메일을 입력하세요" required>
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="username" name="username" 
+                               placeholder="아이디를 입력하세요" 
+                               required 
+                               value="<%= request.getAttribute("username") != null ? request.getAttribute("username") : "" %>">
                     </div>
                 </div>
 
@@ -327,15 +312,13 @@
                     <label for="password">비밀번호</label>
                     <div class="input-container">
                         <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                        <input type="password" id="password" name="password" 
+                               placeholder="비밀번호를 입력하세요" 
+                               required>
                     </div>
                 </div>
 
                 <div class="form-options">
-                    <label class="remember-me">
-                        <input type="checkbox" name="remember" id="remember">
-                        로그인 상태 유지
-                    </label>
                     <a href="#" class="forgot-password">비밀번호 찾기</a>
                 </div>
 

@@ -48,7 +48,7 @@
 			if(result == 1){
 %>
 			<script>
-				alert('거절되었습니다	.');
+				alert('거절되었습니다.');
 				history.back(); // 이전 페이지로 이동
 			</script>
 					
