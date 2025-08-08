@@ -31,9 +31,10 @@ public class PostVO {
     private String phone;            // 전화번호 (호텔용)
     
     // 객실 관련 정보
-    private int[] price;             // 가격 (객실타입용, 1박 기준)
-    private int[] room_count;        // 객실 개수 (객실타입용)
-    private int prices;
+    private int[] prices;             // 가격 (객실타입용, 1박 기준)
+    private int[] room_counts;        // 객실 개수 (객실타입용)
+    private int price;				// 1개의 객실 가격
+    private int room_count;				// 1개의 객실 가격
 
 
 	// 이미지 관련 정보
@@ -76,13 +77,13 @@ public class PostVO {
     }
     
     // 객실타입 게시글용 생성자
-    public PostVO(Long parentId, Long memberNum,String title, String content, int[] price) {
+    public PostVO(Long parentId, Long memberNum,String title, String content, int[] prices) {
         this.parentId = parentId;
         this.memberNum = memberNum;
         this.postType = TYPE_ROOM_TYPE;
         this.title = title;
         this.content = content;
-        this.price = price;
+        this.prices = prices;
         this.displayOrder = 0;
         this.viewCount = 0L;
     }
@@ -101,7 +102,7 @@ public class PostVO {
     // 전체 필드 생성자
     public PostVO(int postId, Long parentId, Long memberNum, String postType, String title,
                   String content, String address, String city, String country, String phone,
-                  int[] price, String imageUrl, String[] fileName, Integer displayOrder,
+                  int[] prices, String imageUrl, String[] fileName, Integer displayOrder,
                   Long viewCount, Timestamp createdAt, Timestamp updatedAt) {
         this.postId = postId;
         this.parentId = parentId;
@@ -113,7 +114,7 @@ public class PostVO {
         this.city = city;
         this.country = country;
         this.phone = phone;
-        this.price = price;
+        this.prices = prices;
         this.imageUrl = imageUrl;
         this.fileName = fileName;
         this.displayOrder = displayOrder;
@@ -151,13 +152,14 @@ public class PostVO {
     }
 
     
-    public int getPrices() {
-		return prices;
+    public int getPrice() {
+		return price;
 	}
 
-	public void setPrices(int prices) {
-		this.prices = prices;
+	public void setPrice(int price) {
+		this.price = price;
 	}
+	
     /**
      * 작성자 회원번호 반환/설정
      */
@@ -241,11 +243,11 @@ public class PostVO {
     /**
      * 객실 가격 배열 반환/설정
      */
-    public int[] getPrice() {
-        return price;
+    public int[] getPrices() {
+        return prices;
     }
-    public void setPrice(int[] price) {
-        this.price = price;
+    public void setPrices(int[] prices) {
+        this.prices = prices;
     }
 
     /**
@@ -311,14 +313,26 @@ public class PostVO {
     /**
      * 객실 개수 배열 반환/설정
      */
-    public int[] getRoom_count() {
-        return room_count;
+    public int[] getRoom_counts() {
+        return room_counts;
     }
-    public void setRoom_count(int[] room_count) {
-        this.room_count = room_count;
+    public void setRoom_counts(int[] room_counts) {
+        this.room_counts = room_counts;
     }
+    
+    /**
+     * @TODO check
+     * 개별 객실 개수
+     */
+    public int getRoom_count() {
+		return room_count;
+	}
 
-    // 편의 메서드들
+	public void setRoom_count(int room_count) {
+		this.room_count = room_count;
+	}
+
+	// 편의 메서드들
     /**
      * 호텔 게시글인지 확인
      */
@@ -420,8 +434,8 @@ public class PostVO {
 	@Override
 	public String toString() {
 		return "PostVO [postId=" + postId + ", parentId=" + parentId + ", memberNum=" + memberNum + ", postType=" + postType + ", title=" + title + ", content=" + content + ", address="
-				+ address + ", city=" + city + ", country=" + country + ", phone=" + phone + ", price="
-				+ Arrays.toString(price) + ", room_count=" + Arrays.toString(room_count) + ", imageUrl=" + imageUrl
+				+ address + ", city=" + city + ", country=" + country + ", phone=" + phone + ", prices="
+				+ Arrays.toString(prices) + ", room_count=" + Arrays.toString(room_counts) + ", imageUrl=" + imageUrl
 				+ ", fileName=" + Arrays.toString(fileName) + ", displayOrder=" + displayOrder + ", viewCount="
 				+ viewCount + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}

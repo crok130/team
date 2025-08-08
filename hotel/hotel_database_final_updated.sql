@@ -65,7 +65,7 @@ CREATE TABLE posts (
 );
 SELECT * from posts;
 
-SELECT * FROM posts WHERE post_type = 'FACILITY';
+SELECT * FROM posts WHERE post_type = 'HOTEL';
 
 -- 1. 하위 posts(객실, 시설 등) 삭제
 DELETE FROM posts WHERE parent_id = 2;

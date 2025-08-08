@@ -10,7 +10,9 @@ import utils.DBCPUtil;
 @WebServlet("/admin-login")
 public class AdminLoginServlet extends HttpServlet {
     
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+	private static final long serialVersionUID = 1L;
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         // 로그인 폼 페이지로 이동
         request.getRequestDispatcher("admin-login.jsp").forward(request, response);
@@ -86,6 +88,7 @@ public class AdminLoginServlet extends HttpServlet {
                     // 세션에 추가 정보 저장
                     HttpSession session = request.getSession();
                     session.setAttribute("memberNum", rs.getInt("member_num"));
+                    System.out.println(session.getAttribute("memberNum"));
                     session.setAttribute("username", rs.getString("username"));
                     session.setAttribute("name", rs.getString("name"));
                     session.setAttribute("userType", rs.getString("user_type"));

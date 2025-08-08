@@ -30,8 +30,10 @@ maxRequestSize = 1024 * 1024 * 50)   // 50MB
 
 public class uploadservlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
+	
+	// 호텔 등록 폼에서 받은 데이터를 처리하는 doPost 메서드
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// 호텔 관련 변수 선언 (폼 데이터 수신용)
 		String title = null;
 		String phone = null;
 		String content = null;
@@ -55,11 +57,38 @@ public class uploadservlet extends HttpServlet {
 		String[] facility_contents = request.getParameterValues("facility_contents");
 
 		String msg = "";
+		// 업로드 폴더가 없으면 생성
 		File file = new File(uploadPath);
 		if(!file.exists()) {
 			file.mkdirs();
 		}
 		
+		// 세션에서 "memberNum" 가져와서 문자열 -> 정수로 변환
+		HttpSession session = request.getSession(); 			 // 세션 객체 얻기
+		Object memberNumObj = session.getAttribute("memberNum"); // 세션에서 "memberNum" 값 꺼내기
+		Object parentIdObj  = session.getAttribute("parentId");  // 세션에서 "parentId" 값 꺼내오기
+
+		int memberNum = 0; // 기본값 (예외처리용)
+		int parentId =0;
+		if (memberNumObj != null) {
+		    // toString()으로 String 변환 후, Integer.parseInt()로 정수 변환
+		    memberNum = Integer.parseInt(memberNumObj.toString());
+		    System.out.println("member num : " + memberNum);
+		} else {
+		    // 로그인이 안되어 있거나 세션에 값이 없으면 예외처리
+		    request.setAttribute("msg", "로그인 후 이용 가능합니다.");
+		    request.getRequestDispatcher("admin-login.jsp").forward(request, response);
+		    return;
+		}
+		
+		// parentId 
+		if (parentIdObj != null) {
+		    // toString()으로 String 변환 후, Integer.parseInt()로 정수 변환
+		    parentId = Integer.parseInt(parentIdObj.toString());
+		} 
+
+		
+		// 업로드된 파트 모두 request 하여 가져오기
 		Collection<Part> parts = request.getParts();
 		
 		/**
@@ -99,6 +128,7 @@ public class uploadservlet extends HttpServlet {
 		        }
 		    }
 
+		 // 일반 폼 데이터 파라미터 처리 (호텔 정보 및 객실 정보)
 			if(part.getContentType() == null || part.getSubmittedFileName() == null) {
 				title = request.getParameter("hotel_title");
 				phone = request.getParameter("hotel_phone");
@@ -113,7 +143,7 @@ public class uploadservlet extends HttpServlet {
 			}
 		}
 		
-		// 가격 배열 처리
+		// 객실 가격 배열 처리 (문자열 -> 정수 변환)
 		if (room_price_str != null) {
 		    room_prices = new int[room_price_str.length];
 		    for (int i = 0; i < room_price_str.length; i++) {
@@ -125,7 +155,7 @@ public class uploadservlet extends HttpServlet {
 		    }
 		}
 		
-		// 객실 개수 배열 처리
+		// 객실 개수 배열 처리(문자열 -> 정수 변환)
 		if (room_count_str != null) {
 			room_count = new int[room_count_str.length];
 		    for (int i = 0; i < room_count_str.length; i++) {
@@ -136,7 +166,7 @@ public class uploadservlet extends HttpServlet {
 		        }
 		    }
 		}
-		
+		 // 호텔 정보 VO에 담기
 		PostVO vo = new PostVO();
 		vo.setTitle(title);
 		vo.setPhone(phone);
@@ -144,9 +174,10 @@ public class uploadservlet extends HttpServlet {
 		vo.setAddress(address);
 		vo.setCity(city);
 		vo.setCountry(country);
-		vo.setPrice(room_prices);
-		vo.setRoom_count(room_count);
+		vo.setPrices(room_prices);
+		vo.setRoom_counts(room_count);
 		
+		// DB 연결 및 호텔 정보 insert
 		Connection conn = DBCPUtil.getConnection();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -154,18 +185,19 @@ public class uploadservlet extends HttpServlet {
 		
 		try{
 			// 1. 호텔 정보 등록
-			String sql = "INSERT INTO posts (member_num, post_type, title, content, address, city, country, phone, file_name)";
-			sql += " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String sql = "INSERT INTO posts (member_num, parent_id, post_type, title, content, address, city, country, phone, file_name)";
+			sql += " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, 2);
-			pstmt.setString(2, "HOTEL");
-			pstmt.setString(3, vo.getTitle());
-			pstmt.setString(4, vo.getContent());
-			pstmt.setString(5, vo.getAddress());
-			pstmt.setString(6, vo.getCity());
-			pstmt.setString(7, vo.getCountry());
-			pstmt.setString(8, vo.getPhone());
-			pstmt.setString(9, joinedFilenames);
+			pstmt.setInt(1, memberNum);
+			pstmt.setInt(2, parentId);
+			pstmt.setString(3, "HOTEL");
+			pstmt.setString(4, vo.getTitle());
+			pstmt.setString(5, vo.getContent());
+			pstmt.setString(6, vo.getAddress());
+			pstmt.setString(7, vo.getCity());
+			pstmt.setString(8, vo.getCountry());
+			pstmt.setString(9, vo.getPhone());
+			pstmt.setString(10, joinedFilenames);
 
 			result = pstmt.executeUpdate();
 			
@@ -173,7 +205,7 @@ public class uploadservlet extends HttpServlet {
 				// 생성된 호텔의 post_id 가져오기 (별도 쿼리 사용)
 				String selectSql = "SELECT post_id FROM posts WHERE member_num = ? AND post_type = 'HOTEL' AND title = ? AND phone = ? ORDER BY created_at DESC";
 				pstmt = conn.prepareStatement(selectSql);
-				pstmt.setInt(1, 2);
+				pstmt.setInt(1, memberNum);
 				pstmt.setString(2, vo.getTitle());
 				pstmt.setString(3, vo.getPhone());
 				rs = pstmt.executeQuery();
@@ -192,32 +224,25 @@ public class uploadservlet extends HttpServlet {
 			DBCPUtil.close(rs, pstmt, conn);
 		}
 		
+		
 		// 2. 객실 타입들 등록 (호텔 등록이 성공한 경우에만)
 		if(hotelPostId > 0 && roomTypes != null && roomTypes.length > 0) {
-			System.out.println("객실 타입 등록 시작 - hotelPostId: " + hotelPostId);
-			System.out.println("객실 타입 개수: " + roomTypes.length);
-			
+			String room_type = "ROOM_TYPE";
 			conn = DBCPUtil.getConnection();
 			try {
-				String sql = "INSERT INTO posts (member_num, post_type, parent_id, title, content, price, room_count)";
-				sql += " VALUES (?, ?, ?, ?, ?, ?, ?)";
+				String sql = "INSERT INTO posts (member_num, parent_id, post_type, parent_id, title, content, price, room_count)";
+				sql += " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 				pstmt = conn.prepareStatement(sql);
 				
 				for(int i = 0; i < roomTypes.length; i++) {
-					System.out.println("객실 타입 " + (i+1) + " 등록 중:");
-					System.out.println("  - 타입명: " + roomTypes[i]);
-					System.out.println("  - 설명: " + (room_content != null && i < room_content.length ? room_content[i] : ""));
-					System.out.println("  - 가격: " + (room_prices != null && i < room_prices.length ? room_prices[i] : 0));
-					System.out.println("  - 개수: " + (room_count != null && i < room_count.length ? room_count[i] : 0));
-					
-					pstmt.setInt(1, 2); // member_num
-					pstmt.setString(2, "ROOM_TYPE");
-					pstmt.setInt(3, hotelPostId); // 호텔의 post_id를 parent_id로 사용
-					pstmt.setString(4, roomTypes[i]); // 객실 타입명
-					pstmt.setString(5, room_content != null && i < room_content.length ? room_content[i] : ""); // 객실 설명
-					pstmt.setInt(6, room_prices != null && i < room_prices.length ? room_prices[i] : 0); // 가격
-					pstmt.setInt(7, room_count != null && i < room_count.length ? room_count[i] : 0); // 객실 개수
-					System.out.println(roomTypes[i]);
+					pstmt.setInt(1, memberNum); // member_num
+					pstmt.setInt(2, parentId);
+					pstmt.setString(3, room_type);
+					pstmt.setInt(4, hotelPostId); // 호텔의 post_id를 parent_id로 사용
+					pstmt.setString(5, roomTypes[i]); // 객실 타입명
+					pstmt.setString(6, room_content != null && i < room_content.length ? room_content[i] : ""); // 객실 설명
+					pstmt.setInt(7, room_prices != null && i < room_prices.length ? room_prices[i] : 0); // 가격
+					pstmt.setInt(8, room_count != null && i < room_count.length ? room_count[i] : 0); // 객실 개수
 					result = pstmt.executeUpdate();
 					if(result == 1) {
 						System.out.println("객실 타입 등록 성공: " + roomTypes[i]);
@@ -238,18 +263,23 @@ public class uploadservlet extends HttpServlet {
 			// 시설명 : title / 시설설명 : content
 			
 			// 3. 시설 등록 (호텔 등록이 성공한 경우에만)
+			
+			
+			String facility = "FACILITY";
             if(hotelPostId > 0 && facility_titles != null && facility_titles.length > 0) {
                 conn = DBCPUtil.getConnection();
+                
                 try {
-                    String sql = "INSERT INTO posts (member_num, post_type, parent_id, title, content) VALUES (?, ?, ?, ?, ?)";
+                    String sql = "INSERT INTO posts (member_num, parent_id, post_type, parent_id, title, content) VALUES (?, ?, ?, ?, ?, ?)";
                     pstmt = conn.prepareStatement(sql);
 
                     for(int i = 0; i < facility_titles.length; i++) {
-                        pstmt.setInt(1, 2); // member_num (로그인 연동 시 수정)
-                        pstmt.setString(2, "FACILITY");
-                        pstmt.setInt(3, hotelPostId); // parent_id: 호텔 post_id
-                        pstmt.setString(4, facility_titles[i]); // 시설명
-                        pstmt.setString(5, facility_contents != null && i < facility_contents.length ? facility_contents[i] : ""); // 시설설명
+                        pstmt.setInt(1, memberNum); // member_num (로그인 연동 시 수정)
+                        pstmt.setInt(2, parentId);	// parent_id (로그인 연동 시 수정)
+                        pstmt.setString(3, facility);
+                        pstmt.setInt(4, hotelPostId); // parent_id: 호텔 post_id
+                        pstmt.setString(5, facility_titles[i]); // 시설명
+                        pstmt.setString(6, facility_contents != null && i < facility_contents.length ? facility_contents[i] : ""); // 시설설명
                         result = pstmt.executeUpdate();
                         if(result == 1) {
                             System.out.println("시설 등록 성공: " + facility_titles[i]);
@@ -271,6 +301,6 @@ public class uploadservlet extends HttpServlet {
 		}
 		
 		request.setAttribute("msg", msg);
-		request.getRequestDispatcher("index.jsp").forward(request, response);
+		request.getRequestDispatcher("admin-dashboard.jsp").forward(request, response);
 	}
 }

@@ -61,10 +61,12 @@
 	    rs = pstmt.executeQuery();
 	    while(rs.next()){
 	        PostVO post = new PostVO();
+
 	        post.setPostId(rs.getInt(1));    // 객실 타입 ID
 	        post.setTitle(rs.getString(2));   // 객실 제목
 	        post.setContent(rs.getString(3)); // 객실 설명
 	        post.setPrices(rs.getInt(4));
+
 	        roomTypes.add(post);
 	    }
 

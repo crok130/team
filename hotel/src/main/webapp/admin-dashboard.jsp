@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+<%@page import="oracle.jdbc.internal.DatabaseSessionState"%>
+=======
+>>>>>>> 7d8405dc8971ec03c75a90c6e5ccc6c7fbd758e0
 <%@page import="java.util.List"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="java.text.DecimalFormat"%>
@@ -6,6 +10,11 @@
 <%@page import="java.text.SimpleDateFormat"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="vo.*, utils.* , java.sql.*"%>
+<<<<<<< HEAD
+<%
+System.out.println(session.getAttribute("memberNum"));
+
+=======
 
 <%
 // 세션 체크 - 로그인하지 않은 사용자나 일반 사용자는 히스토리백과 알림창 표시
@@ -26,6 +35,7 @@ if(!isLoggedIn) {
 
 <%
 	
+>>>>>>> 7d8405dc8971ec03c75a90c6e5ccc6c7fbd758e0
 	String prid = request.getParameter("prid");
 	if(prid == null){
 		prid = "MONTHLY";
@@ -683,67 +693,49 @@ if(!isLoggedIn) {
                         <i class="fas fa-history"></i> 전체 기록
                     </a>
                 </div>
-
+				<%
+					// 등록한 호텔 게시물 수정
+					Object memberNum = session.getAttribute("memberNum");
+					int memberNums = Integer.parseInt(memberNum.toString());		
+					List<PostVO> post = new ArrayList<>();
+					try{
+						String sql = "SELECT post_id, title,content FROM posts WHERE post_type = 'HOTEL' And member_num = ?";
+						conn = DBCPUtil.getConnection();						
+						pstmt = conn.prepareStatement(sql);
+						pstmt.setInt(1, memberNums);
+				        rs = pstmt.executeQuery();				        
+				        while(rs.next()){
+				        	PostVO vo = new PostVO();
+				        	vo.setPostId(rs.getInt(1));
+				        	vo.setTitle(rs.getString(2));
+				        	vo.setContent(rs.getString(3)); 
+				        	post.add(vo);
+				        }
+					}catch(Exception e){
+						e.printStackTrace();
+					}finally{
+						DBCPUtil.close(rs, pstmt, conn);
+					}
+				%>				
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>시간</th>
-                            <th>활동 유형</th>
-                            <th>사용자명</th>
-                            <th>대상</th>
-                            <th>설명</th>
-                            <th>상태</th>
+                            <th>게시글번호</th>
+                            <th>호텔 이름</th>
+                            <th>수정 및 삭제</th>
                         </tr>
                     </thead>
                     <tbody>
+                    <%if(post != null){ %>
+                    	<%for(PostVO p : post){ %>
                         <tr>
-                            <td>14:30</td>
-                            <td>USER 가입</td>
-                            <td>kim_user</td>
-                            <td>member_num: 1005</td>
-                            <td>새 일반 회원이 가입했습니다</td>
-                            <td><span class="status-badge status-approved">완료</span></td>
+                            <td><%= p.getPostId() %></td>
+                            <td><%= p.getTitle() %></td>
+                            <td><a href="hotel-update.jsp?postId=<%= p.getPostId() %>"><span class="status-badge status-approved">수정</span></a></td>
+                            <td><a href="hotel-delete.jsp?postId=<%= p.getPostId() %>"><span class="status-badge status-approved">삭제</span></a></td>
                         </tr>
-                        <tr>
-                            <td>13:45</td>
-                            <td>RESERVATION 생성</td>
-                            <td>lee_travel</td>
-                            <td>reservation_id: 25</td>
-                            <td>그랜드 호텔 - 스탠다드룸 예약</td>
-                            <td><span class="status-badge status-approved">CONFIRMED</span></td>
-                        </tr>
-                        <tr>
-                            <td>12:20</td>
-                            <td>COMMENT 작성</td>
-                            <td>park_guest</td>
-                            <td>comment_id: 15</td>
-                            <td>부산 오션뷰 호텔 리뷰 (평점: 4.5)</td>
-                            <td><span class="status-badge status-approved">게시</span></td>
-                        </tr>
-                        <tr>
-                            <td>11:15</td>
-                            <td>HOTEL 등록</td>
-                            <td>manager_choi</td>
-                            <td>post_id: 12</td>
-                            <td>대구 시티 호텔 등록 신청</td>
-                            <td><span class="status-badge status-pending">승인 대기</span></td>
-                        </tr>
-                        <tr>
-                            <td>10:30</td>
-                            <td>HOTEL_MANAGER 신청</td>
-                            <td>jung_admin</td>
-                            <td>member_num: 1006</td>
-                            <td>호텔 매니저 가입 신청</td>
-                            <td><span class="status-badge status-pending">검토중</span></td>
-                        </tr>
-                        <tr>
-                            <td>09:45</td>
-                            <td>ROOM_TYPE 등록</td>
-                            <td>manager1</td>
-                            <td>post_id: 18</td>
-                            <td>그랜드 호텔 - 이그제큐티브 스위트 추가</td>
-                            <td><span class="status-badge status-approved">완료</span></td>
-                        </tr>
+                        <%} %>
+					<%} %>
                     </tbody>
                 </table>
             </section>
@@ -804,12 +796,14 @@ if(!isLoggedIn) {
                     </thead>
                     <tbody>
  			<%
+
  							int member_num = (int)session.getAttribute("memberNum");
  							System.out.println(member_num);
  							try{
  								conn = DBCPUtil.getConnection();
  								String sql = "SELECT post_id from posts WHERE member_num = ? AND post_type = 'HOTEL'";
  								pstmt.setInt(1, member_num);
+
  								pstmt = conn.prepareStatement(sql);
  								rs = pstmt.executeQuery();
  								while(rs.next()){
@@ -1110,7 +1104,7 @@ if(!isLoggedIn) {
 						  	
 						    try {
 		
-						        conn = DBCPUtil.getConnection();
+
 						        String sql = "SELECT title FROM posts WHERE member_num = ?";
 						        pstmt = conn.prepareStatement(sql);
 						        pstmt.setInt(1, member_num);
@@ -1128,8 +1122,10 @@ if(!isLoggedIn) {
 						  
 			 				try{
 			 					conn = DBCPUtil.getConnection();
+
 			 					String sql = "SELECT username FROM users WHERE member_num = ?";
 			 					pstmt.setInt(1, member_num);
+
 			 					pstmt = conn.prepareStatement(sql);
 			 					rs = pstmt.executeQuery();
 			 					if(rs.next()){
@@ -1147,7 +1143,11 @@ if(!isLoggedIn) {
 											
 						<tr>
 						    <td><%= hotelName %> </td>
+<<<<<<< HEAD
+						    <td><%=name%></td>
+=======
 						    <td><%= session.getAttribute("name") != null ? session.getAttribute("name") : "관리자" %></td>
+>>>>>>> 7d8405dc8971ec03c75a90c6e5ccc6c7fbd758e0
 						    <%if(prid != null && prid.equals("WEEKLY")){ %>
 						    <td><%= weeklyCount %></td>
 						    <td>₩<%= weeklyMoney %></td>
