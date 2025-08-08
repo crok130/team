@@ -804,10 +804,12 @@ if(!isLoggedIn) {
                     </thead>
                     <tbody>
  			<%
- 			
+ 							int member_num = (int)session.getAttribute("memberNum");
+ 							System.out.println(member_num);
  							try{
  								conn = DBCPUtil.getConnection();
- 								String sql = "SELECT post_id from posts WHERE member_num = 2 AND post_type = 'HOTEL'";
+ 								String sql = "SELECT post_id from posts WHERE member_num = ? AND post_type = 'HOTEL'";
+ 								pstmt.setInt(1, member_num);
  								pstmt = conn.prepareStatement(sql);
  								rs = pstmt.executeQuery();
  								while(rs.next()){
@@ -1109,8 +1111,9 @@ if(!isLoggedIn) {
 						    try {
 		
 						        conn = DBCPUtil.getConnection();
-						        String sql = "SELECT title FROM posts WHERE member_num = 2";
+						        String sql = "SELECT title FROM posts WHERE member_num = ?";
 						        pstmt = conn.prepareStatement(sql);
+						        pstmt.setInt(1, member_num);
 						        rs = pstmt.executeQuery();
 						
 						        if (rs.next()) {
@@ -1125,7 +1128,8 @@ if(!isLoggedIn) {
 						  
 			 				try{
 			 					conn = DBCPUtil.getConnection();
-			 					String sql = "SELECT username FROM users WHERE member_num = 2";
+			 					String sql = "SELECT username FROM users WHERE member_num = ?";
+			 					pstmt.setInt(1, member_num);
 			 					pstmt = conn.prepareStatement(sql);
 			 					rs = pstmt.executeQuery();
 			 					if(rs.next()){
@@ -1143,7 +1147,7 @@ if(!isLoggedIn) {
 											
 						<tr>
 						    <td><%= hotelName %> </td>
-						    <td><%=name%></td>
+						    <td><%= session.getAttribute("name") != null ? session.getAttribute("name") : "관리자" %></td>
 						    <%if(prid != null && prid.equals("WEEKLY")){ %>
 						    <td><%= weeklyCount %></td>
 						    <td>₩<%= weeklyMoney %></td>

@@ -751,7 +751,7 @@ if(memberNum == null) {
                     // 세션에서 사용자 정보 확인
                     String username = (String)session.getAttribute("username");
                     String name = (String)session.getAttribute("name");
-                    Integer memberNum = (Integer)session.getAttribute("memberNum");
+                    Integer memberNums = (Integer)session.getAttribute("memberNum");
                     boolean isLoggedIn = (username != null) || isAutoLogin;
                     
                     // 자동로그인 쿠키가 있지만 세션이 없는 경우 세션에 사용자 정보 설정
@@ -1012,11 +1012,11 @@ if(memberNum == null) {
             
             let guestText = '';
             if (adults > 0) {
-                guestText += `성인 ${adults}명`;
+                guestText += `성인 \${adults}명`;
             }
             if (children > 0) {
                 if (guestText) guestText += ', ';
-                guestText += `아동 ${children}명`;
+                guestText += `아동 \${children}명`;
             }
             
             summaryElement.textContent = guestText || '-';
@@ -1208,7 +1208,7 @@ if(memberNum == null) {
                 $.post('reservation-complete', reservationData, function(response) {
                     if (response.success) {
                         alert('예약이 성공적으로 완료되었습니다!');
-                        window.location.href = 'reservation-success.jsp?merchant_uid=' + rsp.merchant_uid;
+                        window.location.href = 'hotels.jsp';
                     } else {
                         alert('예약 처리 중 오류가 발생했습니다: ' + response.message);
                     }
