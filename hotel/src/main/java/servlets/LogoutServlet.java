@@ -58,8 +58,8 @@ public class LogoutServlet extends HttpServlet {
         } else {
             // 사용자 타입에 따른 자동 리다이렉트
             if ("ADMIN".equals(userType) || "HOTEL_MANAGER".equals(userType)) {
-                // 관리자/호텔 매니저는 관리자 로그인 페이지로
-                response.sendRedirect("admin-login.jsp");
+                // 관리자/호텔 매니저는 관리자 메인 페이지로
+                response.sendRedirect("admin-main.jsp");
             } else {
                 // 일반 사용자는 메인 페이지로
                 response.sendRedirect("index.jsp");

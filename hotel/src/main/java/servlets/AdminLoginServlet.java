@@ -39,7 +39,7 @@ public class AdminLoginServlet extends HttpServlet {
                     // userType, username, memberNum, name이 이미 세션에 저장되어 있음
                     
                     // 4. 관리자 대시보드로 리다이렉트
-                    response.sendRedirect("admin-dashboard");
+                    response.sendRedirect("admin-dashboard.jsp");
                     return;
                     
                 } else {
@@ -88,6 +88,7 @@ public class AdminLoginServlet extends HttpServlet {
                     session.setAttribute("memberNum", rs.getInt("member_num"));
                     session.setAttribute("username", rs.getString("username"));
                     session.setAttribute("name", rs.getString("name"));
+                    session.setAttribute("userType", rs.getString("user_type"));
                     return rs.getString("user_type");
                 } else {
                     request.setAttribute("msg", "계정 상태가 올바르지 않습니다.");

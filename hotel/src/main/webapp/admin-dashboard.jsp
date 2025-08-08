@@ -6,6 +6,24 @@
 <%@page import="java.text.SimpleDateFormat"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="vo.*, utils.* , java.sql.*"%>
+
+<%
+// 세션 체크 - 로그인하지 않은 사용자나 일반 사용자는 히스토리백과 알림창 표시
+Integer memberNum = (Integer)session.getAttribute("memberNum");
+String userType = (String)session.getAttribute("userType");
+boolean isLoggedIn = (memberNum != null && ("ADMIN".equals(userType) || "HOTEL_MANAGER".equals(userType)));
+
+if(!isLoggedIn) {
+%>
+    <script>
+        alert("로그인 후 사용해 주세요.");
+        history.back();
+    </script>
+<%
+    return;
+}
+%>
+
 <%
 	
 	String prid = request.getParameter("prid");
@@ -470,8 +488,8 @@
             <div class="admin-user">
                 <div class="user-avatar">
                     <i class="fas fa-user"></i>
-        </div>
-                <span>관리자</span>
+                </div>
+                <span><%= session.getAttribute("name") != null ? session.getAttribute("name") : "관리자" %></span>
                 <a href="logout.jsp" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i> 로그아웃
                 </a>
@@ -616,6 +634,7 @@
 
 %>
             <!-- Pending Approvals -->
+            <% if ("ADMIN".equals(userType)) { %>
             <section class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">승인 대기 목록</h2>
@@ -654,6 +673,7 @@
                 <%} %>
               <%} %>
             </section>
+            <% } %>
 
             <!-- Recent Activities -->
             <section class="content-section">

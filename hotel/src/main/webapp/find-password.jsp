@@ -1,11 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>비밀번호 찾기</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<jsp:include page="common/header.jsp">
+    <jsp:param name="title" value="비밀번호 찾기" />
+</jsp:include>
     <style>
         * {
             margin: 0;
@@ -64,7 +60,7 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background: #e0e0e0;
+            background: #ddd;
             color: #666;
             display: flex;
             align-items: center;
@@ -79,7 +75,7 @@
         }
         
         .step.completed .step-number {
-            background: #4CAF50;
+            background: #28a745;
             color: white;
         }
         
@@ -118,22 +114,8 @@
             border-color: #667eea;
         }
         
-        .form-group input.error {
-            border-color: #ff4757;
-        }
-        
-        .email-verification {
-            display: flex;
-            gap: 10px;
-            align-items: end;
-        }
-        
-        .email-verification .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        
         .btn {
+            width: 100%;
             padding: 12px 24px;
             border: none;
             border-radius: 10px;
@@ -141,37 +123,13 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .btn-primary {
             background: #667eea;
             color: white;
         }
         
-        .btn-primary:hover {
+        .btn:hover {
             background: #5a6fd8;
             transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #218838;
         }
         
         .btn:disabled {
@@ -180,11 +138,19 @@
             transform: none;
         }
         
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
         .message {
-            padding: 12px;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 10px;
             margin-bottom: 20px;
-            font-weight: 500;
+            text-align: center;
         }
         
         .message.success {
@@ -197,52 +163,6 @@
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-        }
-        
-        .message.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .step-content {
-            display: none;
-        }
-        
-        .step-content.active {
-            display: block;
-        }
-        
-        .password-requirements {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .password-requirements h4 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-        
-        .requirement {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .requirement i {
-            margin-right: 8px;
-            width: 16px;
-        }
-        
-        .requirement.valid {
-            color: #28a745;
-        }
-        
-        .requirement.invalid {
-            color: #dc3545;
         }
         
         .back-link {
@@ -260,25 +180,40 @@
             text-decoration: underline;
         }
         
-        .loading {
+        .step-content {
             display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        .verification-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             text-align: center;
-            margin: 20px 0;
         }
         
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+        .verification-info .email {
+            font-weight: bold;
+            color: #667eea;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .resend-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .resend-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .resend-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -286,7 +221,7 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-key"></i> 비밀번호 찾기</h1>
-            <p>아이디를 입력하고 이메일 인증을 통해 비밀번호를 재설정하세요</p>
+            <p>단계별로 진행하여 비밀번호를 재설정하세요</p>
         </div>
         
         <!-- 단계 표시 -->
@@ -297,22 +232,20 @@
             </div>
             <div class="step" id="step2">
                 <div class="step-number">2</div>
-                <div class="step-text">이메일 인증</div>
+                <div class="step-text">인증번호 발송</div>
             </div>
             <div class="step" id="step3">
                 <div class="step-number">3</div>
-                <div class="step-text">비밀번호 변경</div>
+                <div class="step-text">인증번호 확인</div>
+            </div>
+            <div class="step" id="step4">
+                <div class="step-number">4</div>
+                <div class="step-text">새 비밀번호</div>
             </div>
         </div>
         
         <!-- 메시지 표시 영역 -->
         <div id="messageArea"></div>
-        
-        <!-- 로딩 표시 -->
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>처리 중입니다...</p>
-        </div>
         
         <!-- 1단계: 아이디 입력 -->
         <div class="step-content active" id="step1Content">
@@ -322,70 +255,59 @@
                     <input type="text" id="username" name="username" required 
                            placeholder="가입한 아이디를 입력하세요">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    다음 단계로
+                <button type="submit" class="btn">
+                    <i class="fas fa-search"></i> 아이디 확인
                 </button>
             </form>
         </div>
         
-        <!-- 2단계: 이메일 인증 -->
+        <!-- 2단계: 인증번호 발송 -->
         <div class="step-content" id="step2Content">
-            <div class="form-group">
-                <label>이메일</label>
-                <input type="email" id="email" readonly>
+            <div class="verification-info">
+                <p>인증번호를 다음 이메일로 발송합니다:</p>
+                <p class="email" id="userEmail"></p>
             </div>
-            <div class="email-verification">
-                <div class="form-group">
-                    <label for="verificationCode">인증번호</label>
-                    <input type="text" id="verificationCode" name="verificationCode" 
-                           placeholder="인증번호 6자리를 입력하세요" maxlength="6">
-                </div>
-                <button type="button" class="btn btn-success" id="verifyCodeBtn">
-                    확인
-                </button>
-            </div>
-            <button type="button" class="btn btn-primary" id="resendCodeBtn" style="width: 100%; margin-top: 10px;">
-                인증번호 재발송
+            <button type="button" class="btn" id="sendCodeBtn">
+                <i class="fas fa-paper-plane"></i> 인증번호 발송
             </button>
         </div>
         
-        <!-- 3단계: 비밀번호 변경 -->
+        <!-- 3단계: 인증번호 확인 -->
         <div class="step-content" id="step3Content">
-            <div class="password-requirements">
-                <h4>비밀번호 요구사항</h4>
-                <div class="requirement" id="reqLength">
-                    <i class="fas fa-circle"></i>
-                    <span>8자 이상</span>
-                </div>
-                <div class="requirement" id="reqUppercase">
-                    <i class="fas fa-circle"></i>
-                    <span>대문자 1개 이상</span>
-                </div>
-                <div class="requirement" id="reqLowercase">
-                    <i class="fas fa-circle"></i>
-                    <span>소문자 1개 이상</span>
-                </div>
-                <div class="requirement" id="reqNumber">
-                    <i class="fas fa-circle"></i>
-                    <span>숫자 1개 이상</span>
-                </div>
-                <div class="requirement" id="reqSpecial">
-                    <i class="fas fa-circle"></i>
-                    <span>특수문자 1개 이상</span>
-                </div>
+            <div class="verification-info">
+                <p>이메일로 발송된 6자리 인증번호를 입력하세요</p>
+                <p class="email" id="userEmail2"></p>
             </div>
-            
+            <form id="verificationForm">
+                <div class="form-group">
+                    <label for="verificationCode">인증번호</label>
+                    <input type="text" id="verificationCode" name="verificationCode" 
+                           maxlength="6" placeholder="000000" required>
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-check"></i> 인증번호 확인
+                </button>
+            </form>
+            <div class="resend-link">
+                <a href="#" id="resendCode">인증번호 재발송</a>
+            </div>
+        </div>
+        
+        <!-- 4단계: 새 비밀번호 설정 -->
+        <div class="step-content" id="step4Content">
             <form id="passwordForm">
                 <div class="form-group">
                     <label for="newPassword">새 비밀번호</label>
-                    <input type="password" id="newPassword" name="newPassword" required>
+                    <input type="password" id="newPassword" name="newPassword" 
+                           placeholder="6자리 이상 입력" required>
                 </div>
                 <div class="form-group">
                     <label for="confirmPassword">새 비밀번호 확인</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <input type="password" id="confirmPassword" name="confirmPassword" 
+                           placeholder="비밀번호 재입력" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    비밀번호 변경
+                <button type="submit" class="btn">
+                    <i class="fas fa-save"></i> 비밀번호 변경
                 </button>
             </form>
         </div>
@@ -398,17 +320,11 @@
     <script>
         let currentStep = 1;
         let userEmail = '';
-        let isEmailVerified = false;
         
         // 메시지 표시 함수
-        function showMessage(message, type = 'info') {
+        function showMessage(message, type = 'error') {
             const messageArea = document.getElementById('messageArea');
             messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
-        }
-        
-        // 로딩 표시/숨김
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
         
         // 단계 변경 함수
@@ -418,208 +334,190 @@
                 content.classList.remove('active');
             });
             document.querySelectorAll('.step').forEach(stepEl => {
-                stepEl.classList.remove('active', 'completed');
+                stepEl.classList.remove('active');
             });
-            
-            // 현재 단계 활성화
-            document.getElementById(`step${step}Content`).classList.add('active');
-            document.getElementById(`step${step}`).classList.add('active');
             
             // 이전 단계들 완료 표시
             for (let i = 1; i < step; i++) {
                 document.getElementById(`step${i}`).classList.add('completed');
             }
             
+            // 현재 단계 활성화
+            document.getElementById(`step${step}`).classList.add('active');
+            document.getElementById(`step${step}Content`).classList.add('active');
+            
             currentStep = step;
         }
         
-        // 1단계: 아이디 입력 폼 제출
+        // 1단계: 아이디 확인
         document.getElementById('usernameForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value.trim();
+            console.log('아이디 확인 요청:', username);
+            
             if (!username) {
-                showMessage('아이디를 입력해주세요.', 'error');
+                showMessage('아이디를 입력해주세요.');
                 return;
             }
             
-            showLoading(true);
+            const formData = `action=checkUsername&username=${encodeURIComponent(username)}`;
+            console.log('전송할 데이터:', formData);
             
-            // 아이디로 이메일 조회
             fetch('find-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `action=checkUsername&username=${encodeURIComponent(username)}`
+                body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('서버 응답 상태:', response.status);
+                return response.json();
+            })
             .then(data => {
-                showLoading(false);
-                
+                console.log('서버 응답 데이터:', data);
                 if (data.success) {
-                    userEmail = data.email;
-                    document.getElementById('email').value = userEmail;
-                    goToStep(2);
-                    showMessage('이메일로 인증번호를 발송했습니다. 이메일을 확인해주세요.', 'success');
+                    userEmail = data.data;
+                    document.getElementById('userEmail').textContent = userEmail;
+                    document.getElementById('userEmail2').textContent = userEmail;
+                    showMessage(data.message, 'success');
+                    setTimeout(() => goToStep(2), 1000);
                 } else {
-                    showMessage(data.message || '존재하지 않는 아이디입니다.', 'error');
+                    showMessage(data.message);
                 }
             })
             .catch(error => {
-                showLoading(false);
                 console.error('Error:', error);
-                showMessage('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                showMessage('오류가 발생했습니다. 다시 시도해주세요.');
             });
         });
         
-        // 2단계: 인증번호 확인
-        document.getElementById('verifyCodeBtn').addEventListener('click', function() {
-            const code = document.getElementById('verificationCode').value.trim();
-            if (!code) {
-                showMessage('인증번호를 입력해주세요.', 'error');
+        // 2단계: 인증번호 발송
+        document.getElementById('sendCodeBtn').addEventListener('click', function() {
+            fetch('find-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=sendVerificationCode'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    setTimeout(() => goToStep(3), 1000);
+                } else {
+                    showMessage(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+        });
+        
+        // 3단계: 인증번호 확인
+        document.getElementById('verificationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const verificationCode = document.getElementById('verificationCode').value.trim();
+            if (!verificationCode) {
+                showMessage('인증번호를 입력해주세요.');
                 return;
             }
             
-            showLoading(true);
+            fetch('find-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=verifyCode&verificationCode=${encodeURIComponent(verificationCode)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    setTimeout(() => goToStep(4), 1000);
+                } else {
+                    showMessage(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+        });
+        
+        // 인증번호 재발송
+        document.getElementById('resendCode').addEventListener('click', function(e) {
+            e.preventDefault();
             
             fetch('find-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `action=verifyCode&code=${encodeURIComponent(code)}`
+                body: 'action=sendVerificationCode'
             })
             .then(response => response.json())
             .then(data => {
-                showLoading(false);
-                
                 if (data.success) {
-                    isEmailVerified = true;
-                    goToStep(3);
-                    showMessage('이메일 인증이 완료되었습니다. 새 비밀번호를 입력해주세요.', 'success');
+                    showMessage('인증번호가 재발송되었습니다.', 'success');
                 } else {
-                    showMessage(data.message || '인증번호가 올바르지 않습니다.', 'error');
+                    showMessage(data.message);
                 }
             })
             .catch(error => {
-                showLoading(false);
                 console.error('Error:', error);
-                showMessage('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                showMessage('오류가 발생했습니다. 다시 시도해주세요.');
             });
         });
         
-        // 2단계: 인증번호 재발송
-        document.getElementById('resendCodeBtn').addEventListener('click', function() {
-            showLoading(true);
-            
-            fetch('find-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=resendCode`
-            })
-            .then(response => response.json())
-            .then(data => {
-                showLoading(false);
-                
-                if (data.success) {
-                    showMessage('인증번호를 재발송했습니다. 이메일을 확인해주세요.', 'success');
-                } else {
-                    showMessage(data.message || '인증번호 발송에 실패했습니다.', 'error');
-                }
-            })
-            .catch(error => {
-                showLoading(false);
-                console.error('Error:', error);
-                showMessage('오류가 발생했습니다. 다시 시도해주세요.', 'error');
-            });
-        });
-        
-        // 3단계: 비밀번호 유효성 검사
-        function validatePassword(password) {
-            const requirements = {
-                length: password.length >= 8,
-                uppercase: /[A-Z]/.test(password),
-                lowercase: /[a-z]/.test(password),
-                number: /\d/.test(password),
-                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-            };
-            
-            // 요구사항 표시 업데이트
-            document.getElementById('reqLength').className = `requirement ${requirements.length ? 'valid' : 'invalid'}`;
-            document.getElementById('reqUppercase').className = `requirement ${requirements.uppercase ? 'valid' : 'invalid'}`;
-            document.getElementById('reqLowercase').className = `requirement ${requirements.lowercase ? 'valid' : 'invalid'}`;
-            document.getElementById('reqNumber').className = `requirement ${requirements.number ? 'valid' : 'invalid'}`;
-            document.getElementById('reqSpecial').className = `requirement ${requirements.special ? 'valid' : 'invalid'}`;
-            
-            // 아이콘 업데이트
-            document.querySelectorAll('.requirement.valid i').forEach(icon => {
-                icon.className = 'fas fa-check';
-            });
-            document.querySelectorAll('.requirement.invalid i').forEach(icon => {
-                icon.className = 'fas fa-times';
-            });
-            
-            return Object.values(requirements).every(req => req);
-        }
-        
-        // 비밀번호 입력 시 실시간 검사
-        document.getElementById('newPassword').addEventListener('input', function() {
-            validatePassword(this.value);
-        });
-        
-        // 3단계: 비밀번호 변경 폼 제출
+        // 4단계: 비밀번호 변경
         document.getElementById('passwordForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
-            if (!validatePassword(newPassword)) {
-                showMessage('비밀번호 요구사항을 모두 만족해야 합니다.', 'error');
+            if (!newPassword || !confirmPassword) {
+                showMessage('비밀번호를 입력해주세요.');
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                showMessage('비밀번호가 일치하지 않습니다.', 'error');
+                showMessage('비밀번호가 일치하지 않습니다.');
                 return;
             }
             
-            if (!isEmailVerified) {
-                showMessage('이메일 인증이 필요합니다.', 'error');
+            if (newPassword.length < 6) {
+                showMessage('비밀번호는 6자리 이상이어야 합니다.');
                 return;
             }
-            
-            showLoading(true);
             
             fetch('find-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `action=changePassword&newPassword=${encodeURIComponent(newPassword)}`
+                body: `action=changePassword&newPassword=${encodeURIComponent(newPassword)}&confirmPassword=${encodeURIComponent(confirmPassword)}`
             })
             .then(response => response.json())
             .then(data => {
-                showLoading(false);
-                
                 if (data.success) {
-                    showMessage('비밀번호가 성공적으로 변경되었습니다. 로그인 페이지로 이동합니다.', 'success');
+                    showMessage(data.message, 'success');
                     setTimeout(() => {
                         window.location.href = 'login.jsp';
                     }, 2000);
                 } else {
-                    showMessage(data.message || '비밀번호 변경에 실패했습니다.', 'error');
+                    showMessage(data.message);
                 }
             })
             .catch(error => {
-                showLoading(false);
                 console.error('Error:', error);
-                showMessage('오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                showMessage('오류가 발생했습니다. 다시 시도해주세요.');
             });
         });
     </script>
-</body>
-</html>
+<jsp:include page="common/footer.jsp" />
