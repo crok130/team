@@ -411,9 +411,6 @@
     </style>
 </head>
 <body>
-    <a href="index.jsp" class="back-to-main">
-        <i class="fas fa-arrow-left"></i> 일반 사이트로
-    </a>
 
     <!-- Header -->
     <header class="header">

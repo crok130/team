@@ -1,9 +1,17 @@
 <!-- 게시판 상세보기  -->
 <%@page import="java.util.Collection"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.ArrayList, java.sql.*, utils.DBCPUtil, vo.PostVO" %>
+
 <!DOCTYPE html>
 <html lang="ko">
-<%@ page import="java.util.ArrayList, java.sql.*, utils.DBCPUtil, vo.PostVO" %>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>예약하기 - Hotel Booking System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
 
 <!-- 
 	예약 요약에 있는 
@@ -47,15 +55,18 @@
 	// 객실 타입 정보 가져오기
 	try {
 	    conn = DBCPUtil.getConnection();
-	    String sql = "SELECT title, content,price FROM posts WHERE post_type = 'ROOM_TYPE' AND parent_id = ?";
+	    String sql = "SELECT post_id, title, content, price FROM posts WHERE post_type = 'ROOM_TYPE' AND parent_id = ?";
 	    pstmt = conn.prepareStatement(sql);
 	    pstmt.setInt(1, postid);
 	    rs = pstmt.executeQuery();
 	    while(rs.next()){
 	        PostVO post = new PostVO();
-	        post.setTitle(rs.getString(1));   // 객실 제목
-	        post.setContent(rs.getString(2)); // 객실 설명
-	        post.setPrice(rs.getInt(3));		
+
+	        post.setPostId(rs.getInt(1));    // 객실 타입 ID
+	        post.setTitle(rs.getString(2));   // 객실 제목
+	        post.setContent(rs.getString(3)); // 객실 설명
+	        post.setPrices(rs.getInt(4));
+
 	        roomTypes.add(post);
 	    }
 
@@ -81,11 +92,6 @@
 		DBCPUtil.close(pstmt, rs, conn); 
 	}
 %>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>예약하기 - Hotel Booking System</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -102,11 +108,12 @@
 
         /* Header */
         .header {
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             position: sticky;
             top: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
         .nav-container {
@@ -115,31 +122,79 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c5aa0;
-            text-decoration: none;
+            padding: 1.2rem 2rem;
         }
 
         .nav-menu {
             display: flex;
             list-style: none;
-            gap: 2rem;
+            gap: 2.5rem;
+            margin: 0;
+            padding: 0;
+            margin-left: auto;
+            margin-right: 2rem;
         }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #ffd700;
+        }
+
+
 
         .nav-menu a {
             text-decoration: none;
-            color: #333;
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 500;
-            transition: color 0.3s;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            position: relative;
         }
 
-        .nav-menu a:hover, .nav-menu a.active {
-            color: #2c5aa0;
+        .nav-menu a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #ffd700;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-menu a:hover::after,
+        .nav-menu a.active::after {
+            width: 80%;
         }
 
         .logout-btn {
@@ -159,6 +214,160 @@
             color: white !important;
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-outline {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            background: transparent;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+        }
+
+        /* User Dropdown */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info i {
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+
+        .user-info span {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            z-index: 1001;
+            margin-top: 0.8rem;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .user-dropdown-content a {
+            color: #333;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .user-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .user-dropdown-content a:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .user-dropdown-content.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Main Container */
@@ -507,22 +716,69 @@
     </style>
 </head>
 <body>
+<%
+// 세션 체크 - 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
+Integer memberNum = (Integer)session.getAttribute("memberNum");
+if(memberNum == null) {
+    response.sendRedirect("login.jsp");
+    return;
+}
+%>
     <!-- Header -->
     <header class="header">
         <div class="nav-container">
             <a href="index.jsp" class="logo">
                 <i class="fas fa-hotel"></i> Hotel Booking
             </a>
-                         <nav class="nav-menu">
-                 <a href="index.jsp">홈</a>
-                 <a href="hotels.jsp">호텔</a>
-                 <a href="reservations.jsp" class="active">예약</a>
-                 <a href="community.jsp">커뮤니티</a>
-                 <a href="login.jsp">로그인</a>
-                 <a href="logout" class="logout-btn">
-                     <i class="fas fa-sign-out-alt"></i> 로그아웃
-                 </a>
-             </nav>
+            <nav class="nav-menu">
+                <a href="index.jsp">홈</a>
+                <a href="hotels.jsp">호텔</a>
+                <a href="reservations.jsp" class="active">예약</a>
+                <a href="community.jsp">커뮤니티</a>
+            </nav>
+            <div class="auth-buttons">
+                <%
+                    boolean isAutoLogin = false;
+                    String autoLoginUserId = null;
+                    Cookie[] cookies = request.getCookies();
+                    if (cookies != null) {
+                        for (Cookie cookie : cookies) {
+                            if ("autoLogin".equals(cookie.getName())) {
+                                isAutoLogin = true;
+                                autoLoginUserId = cookie.getValue();
+                                break;
+                            }
+                        }
+                    }
+                    // 세션에서 사용자 정보 확인
+                    String username = (String)session.getAttribute("username");
+                    String name = (String)session.getAttribute("name");
+                    Integer memberNums = (Integer)session.getAttribute("memberNum");
+                    boolean isLoggedIn = (username != null) || isAutoLogin;
+                    
+                    // 자동로그인 쿠키가 있지만 세션이 없는 경우 세션에 사용자 정보 설정
+                    if (isAutoLogin && username == null && autoLoginUserId != null) {
+                        session.setAttribute("username", autoLoginUserId);
+                        isLoggedIn = true;
+                    }
+                %>
+                <% if (isLoggedIn) { %>
+                    <div class="user-dropdown">
+                        <div class="user-info">
+                            <i class="fas fa-user-circle"></i>
+                            <span><%= name != null ? name : (username != null ? username : autoLoginUserId) %></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="user-dropdown-content">
+                            <a href="#">예약 내역</a>
+                            <a href="logout.jsp">로그아웃</a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="login.jsp" class="btn btn-outline">로그인</a>
+                    <a href="register.jsp" class="btn btn-primary">회원가입</a>
+                <% } %>
+            </div>
         </div>
     </header>
 
@@ -589,7 +845,7 @@
        		<%for(PostVO r : roomTypes){ %>
                 <div class="room-options">
                     <label class="room-card">
-                        <input type="radio" name="roomType" value="standard" required>
+                        <input type="radio" name="roomType" value="<%=r.getPostId()%>" required>
                         <div class="room-header">
                             <div class="room-name"><%=r.getTitle() %></div>
                             <div class="room-price"><%=r.getPrices() %>/박</div>
@@ -609,24 +865,6 @@
                 </div>
        		<%} %>
 		<%} %>
-                <!-- Guest Information -->
-                <h3>투숙객 정보</h3>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="guestName">성명 (대표 투숙객)</label>
-                        <input type="text" id="guestName" name="guestName" placeholder="홍길동" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="guestPhone">연락처</label>
-                        <input type="tel" id="guestPhone" name="guestPhone" placeholder="010-1234-5678" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="guestEmail">이메일</label>
-                        <input type="email" id="guestEmail" name="guestEmail" placeholder="hong@email.com" required>
-                    </div>
-                </div>
-
                 <div class="form-group">
                     <label for="specialRequests">특별 요청사항 (선택)</label>
                     <textarea id="specialRequests" name="specialRequests" placeholder="객실 위치, 어메니티 요청, 기타 요청사항을 입력해주세요"></textarea>
@@ -642,41 +880,13 @@
                         <div>신용카드</div>
                     </label>
                     <label class="payment-method">
-                        <input type="radio" name="paymentMethod" value="transfer">
-                        <i class="fas fa-university"></i>
-                        <div>계좌이체</div>
-                    </label>
-                    <label class="payment-method">
                         <input type="radio" name="paymentMethod" value="kakao">
                         <i class="fas fa-comment"></i>
                         <div>카카오페이</div>
                     </label>
-                    <label class="payment-method">
-                        <input type="radio" name="paymentMethod" value="naver">
-                        <i class="fas fa-mobile-alt"></i>
-                        <div>네이버페이</div>
-                    </label>
                 </div>
 
-                <div class="card-info">
-                    <div class="form-group">
-                        <label for="cardNumber">카드번호</label>
-                        <input type="text" id="cardNumber" name="cardNumber" placeholder="1234-5678-9012-3456" maxlength="19">
-                    </div>
-                    <div class="form-group">
-                        <label for="expiry">유효기간</label>
-                        <input type="text" id="expiry" name="expiry" placeholder="MM/YY" maxlength="5">
-                    </div>
-                    <div class="form-group">
-                        <label for="cvv">CVV</label>
-                        <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="3">
-                    </div>
-                </div>
 
-                <div class="form-group">
-                    <label for="cardHolder">카드 소유자명</label>
-                    <input type="text" id="cardHolder" name="cardHolder" placeholder="홍길동">
-                </div>
 
                 <div class="terms-agreement">
                     <div class="checkbox-group">
@@ -697,7 +907,7 @@
                     <a href="hotels.jsp" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> 호텔 목록으로
                     </a>
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <button type="button" class="btn btn-primary" style="flex: 1;" onclick="requestPayment()">
                         <i class="fas fa-credit-card"></i> 결제하기
                     </button>
                 </div>
@@ -724,42 +934,341 @@
             <div class="booking-details">
                 <div class="detail-row">
                     <span>체크인</span>
-                    <span>2024-02-15</span>
+                    <span id="summaryCheckin">-</span>
                 </div>
                 <div class="detail-row">
                     <span>체크아웃</span>
-                    <span>2024-02-17</span>
+                    <span id="summaryCheckout">-</span>
                 </div>
                 <div class="detail-row highlight">
                     <span>숙박일수</span>
-                    <span>2박</span>
+                    <span id="summaryNights">-</span>
                 </div>
                 <div class="detail-row">
                     <span>투숙객</span>
-                    <span>성인 2명</span>
+                    <span id="summaryGuests">-</span>
                 </div>
                 <div class="detail-row">
                     <span>객실</span>
-                    <span>스탠다드 룸</span>
+                    <span id="summaryRoom">-</span>
                 </div>
             </div>
 
             <div class="price-breakdown">
                 <div class="price-row">
                     <span>객실 요금</span>
-                    <span>240,000원</span>
-                </div>
-                <div class="price-row">
-                    <span>세금 및 수수료</span>
-                    <span>24,000원</span>
+                    <span id="summaryPrice">-</span>
                 </div>
                 <div class="price-row total">
                     <span>총 결제금액</span>
-                    <span>264,000원</span>
+                    <span id="summaryTotal">-</span>
                 </div>
             </div>
         </div>
     </div>
-</body>
 
+    <script>
+        // 날짜 계산 함수
+        function calculateNights(checkin, checkout) {
+            if (!checkin || !checkout) return 0;
+            const start = new Date(checkin);
+            const end = new Date(checkout);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // 날짜 포맷팅 함수
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        }
+
+        // 가격 포맷팅 함수
+        function formatPrice(price) {
+            if (!price) return '-';
+            return price.toLocaleString() + '원';
+        }
+
+        // 투숙객 정보 업데이트
+        function updateGuestInfo() {
+            const adultsSelect = document.getElementById('adults');
+            const childrenSelect = document.getElementById('children');
+            const summaryElement = document.getElementById('summaryGuests');
+            
+            console.log('updateGuestInfo 함수 호출됨');
+            console.log('adultsSelect:', adultsSelect);
+            console.log('childrenSelect:', childrenSelect);
+            console.log('summaryElement:', summaryElement);
+            
+            if (!adultsSelect || !childrenSelect || !summaryElement) {
+                console.log('필요한 DOM 요소를 찾을 수 없습니다.');
+                return;
+            }
+            
+            const adults = parseInt(adultsSelect.value) || 0;
+            const children = parseInt(childrenSelect.value) || 0;
+            
+            console.log('투숙객 정보 업데이트:', adults, children);
+            
+            let guestText = '';
+            if (adults > 0) {
+                guestText += `성인 \${adults}명`;
+            }
+            if (children > 0) {
+                if (guestText) guestText += ', ';
+                guestText += `아동 \${children}명`;
+            }
+            
+            summaryElement.textContent = guestText || '-';
+            console.log('업데이트된 투숙객 텍스트:', summaryElement.textContent);
+        }
+
+        // 객실 정보 업데이트
+        function updateRoomInfo() {
+            const selectedRoom = document.querySelector('input[name="roomType"]:checked');
+            const summaryRoom = document.getElementById('summaryRoom');
+            const summaryPrice = document.getElementById('summaryPrice');
+            const summaryTotal = document.getElementById('summaryTotal');
+            
+            console.log('객실 정보 업데이트 - 선택된 객실:', selectedRoom);
+            
+            if (selectedRoom) {
+                const roomCard = selectedRoom.closest('.room-card');
+                const roomName = roomCard.querySelector('.room-name').textContent;
+                const roomPrice = roomCard.querySelector('.room-price').textContent;
+                
+                console.log('객실명:', roomName, '가격:', roomPrice);
+                
+                if (summaryRoom) summaryRoom.textContent = roomName;
+                if (summaryPrice) summaryPrice.textContent = roomPrice;
+                
+                // 총 결제금액 계산
+                const nights = parseInt(document.getElementById('nights').value) || 1;
+                const priceText = roomPrice.replace(/[^\d]/g, '');
+                const price = parseInt(priceText) || 0;
+                const total = price * nights;
+                
+                console.log('숙박일수:', nights, '객실가격:', price, '총액:', total);
+                
+                if (summaryTotal) summaryTotal.textContent = formatPrice(total);
+            } else {
+                if (summaryRoom) summaryRoom.textContent = '-';
+                if (summaryPrice) summaryPrice.textContent = '-';
+                if (summaryTotal) summaryTotal.textContent = '-';
+            }
+        }
+
+        // 날짜 정보 업데이트
+        function updateDateInfo() {
+            const checkin = document.getElementById('checkinDate').value;
+            const checkout = document.getElementById('checkoutDate').value;
+            
+            const summaryCheckin = document.getElementById('summaryCheckin');
+            const summaryCheckout = document.getElementById('summaryCheckout');
+            const summaryNights = document.getElementById('summaryNights');
+            const nightsInput = document.getElementById('nights');
+            
+            if (summaryCheckin) summaryCheckin.textContent = formatDate(checkin);
+            if (summaryCheckout) summaryCheckout.textContent = formatDate(checkout);
+            
+            const nights = calculateNights(checkin, checkout);
+            if (nightsInput) nightsInput.value = nights;
+            if (summaryNights) summaryNights.textContent = nights > 0 ? `${nights}박` : '-';
+            
+            // 객실 정보도 다시 업데이트 (가격 재계산)
+            updateRoomInfo();
+        }
+
+        // 이벤트 리스너 등록
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM 로드 완료 - reservations.jsp');
+            
+            // 날짜 변경 이벤트
+            document.getElementById('checkinDate').addEventListener('change', updateDateInfo);
+            document.getElementById('checkoutDate').addEventListener('change', updateDateInfo);
+            
+            // 투숙객 변경 이벤트
+            document.getElementById('adults').addEventListener('change', updateGuestInfo);
+            document.getElementById('children').addEventListener('change', updateGuestInfo);
+            
+            // 객실 선택 변경 이벤트
+            document.querySelectorAll('input[name="roomType"]').forEach(radio => {
+                radio.addEventListener('change', updateRoomInfo);
+            });
+            
+            // 초기값 설정
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            document.getElementById('checkinDate').value = today.toISOString().split('T')[0];
+            document.getElementById('checkoutDate').value = tomorrow.toISOString().split('T')[0];
+            
+            // 약간의 지연 후 초기 업데이트 실행 (DOM이 완전히 로드되도록)
+            setTimeout(function() {
+                console.log('초기 업데이트 시작');
+                updateDateInfo();
+                updateGuestInfo();
+                updateRoomInfo();
+                
+                // 디버깅을 위한 로그
+                console.log('페이지 로드 완료 - 초기값 설정됨');
+                console.log('성인 수:', document.getElementById('adults').value);
+                console.log('아동 수:', document.getElementById('children').value);
+                console.log('숙박일수:', document.getElementById('nights').value);
+            }, 100);
+        });
+
+    // 포트원 결제 요청 함수
+    function requestPayment() {
+        // 필수 필드 검증
+        const checkinDate = document.getElementById('checkinDate').value;
+        const checkoutDate = document.getElementById('checkoutDate').value;
+        const selectedRoom = document.querySelector('input[name="roomType"]:checked');
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        const agreeTerms = document.getElementById('agreeTerms').checked;
+        const agreePrivacy = document.getElementById('agreePrivacy').checked;
+
+        if (!checkinDate || !checkoutDate) {
+            alert('체크인/체크아웃 날짜를 선택해주세요.');
+            return;
+        }
+
+        if (!selectedRoom) {
+            alert('객실 타입을 선택해주세요.');
+            return;
+        }
+
+        if (!paymentMethod) {
+            alert('결제 방법을 선택해주세요.');
+            return;
+        }
+
+        if (!agreeTerms || !agreePrivacy) {
+            alert('필수 약관에 동의해주세요.');
+            return;
+        }
+
+        // 선택된 객실 정보 가져오기
+        const roomCard = selectedRoom.closest('.room-card');
+        const roomName = roomCard.querySelector('.room-name').textContent;
+        const roomPrice = roomCard.querySelector('.room-price').textContent;
+        const priceText = roomPrice.replace(/[^\d]/g, '');
+        const price = parseInt(priceText) || 0;
+        const nights = parseInt(document.getElementById('nights').value) || 1;
+        const totalAmount = price * nights;
+
+        // 포트원 초기화
+        var IMP = window.IMP;
+        IMP.init('imp20622085'); // 실제 가맹점 식별코드로 변경 필요
+
+        // 결제 요청 데이터
+        const paymentData = {
+            pg: getPaymentPG(paymentMethod.value),
+            pay_method: 'card',
+            merchant_uid: 'hotel_' + new Date().getTime(),
+            name: '<%=vo.getTitle()%> - ' + roomName,
+            amount: totalAmount,
+            custom_data: {
+                checkin_date: checkinDate,
+                checkout_date: checkoutDate,
+                nights: nights,
+                adults: document.getElementById('adults').value,
+                children: document.getElementById('children').value,
+                room_type: roomName,
+                hotel_name: '<%=vo.getTitle()%>',
+                special_requests: document.getElementById('specialRequests').value
+            }
+        };
+
+        // 결제 요청
+        IMP.request_pay(paymentData, function(rsp) {
+            if (rsp.success) {
+                console.log("결제 성공:", rsp);
+                
+                // 결제 성공 시 예약 정보를 서버로 전송 (데이터베이스 구조에 맞춤)
+                const reservationData = {
+                    member_num: '<%=memberNum%>', // 세션에서 가져온 회원번호
+                    hotel_post_id: '<%=postidstr%>', // 호텔 게시글 ID
+                    room_post_id: selectedRoom.value, // 선택된 객실 타입 ID
+                    check_in_date: checkinDate,
+                    check_out_date: checkoutDate,
+                    adults: parseInt(document.getElementById('adults').value) || 1,
+                    children: parseInt(document.getElementById('children').value) || 0,
+                    total_amount: totalAmount,
+                    special_requests: document.getElementById('specialRequests').value,
+                    // 결제 정보 (서블릿에서 처리)
+                    imp_uid: rsp.imp_uid,
+                    merchant_uid: rsp.merchant_uid,
+                    paid_amount: rsp.paid_amount,
+                    apply_num: rsp.apply_num
+                };
+
+                // 예약 정보를 서버로 전송
+                $.post('reservation-complete', reservationData, function(response) {
+                    if (response.success) {
+                        alert('예약이 성공적으로 완료되었습니다!');
+                        window.location.href = 'hotels.jsp';
+                    } else {
+                        alert('예약 처리 중 오류가 발생했습니다: ' + response.message);
+                    }
+                }).fail(function() {
+                    alert('서버 통신 중 오류가 발생했습니다.');
+                });
+
+            } else {
+                console.log("결제 실패:", rsp);
+                alert('결제에 실패하였습니다. 에러 내용: ' + rsp.error_msg);
+            }
+        });
+    }
+
+    // 결제 방법에 따른 PG 설정
+    function getPaymentPG(paymentMethod) {
+        switch(paymentMethod) {
+            case 'kakao':
+                return 'kakaopay';
+            case 'card':
+                return 'html5_inicis';
+            case 'transfer':
+                return 'html5_inicis';
+            case 'naver':
+                return 'naverpay';
+            default:
+                return 'html5_inicis';
+        }
+    }
+    
+    // 드롭다운 클릭 이벤트 처리
+    document.addEventListener('DOMContentLoaded', function() {
+        const userDropdown = document.querySelector('.user-dropdown');
+        const dropdownContent = document.querySelector('.user-dropdown-content');
+        
+        if (userDropdown && dropdownContent) {
+            // 사용자 정보 클릭 시 드롭다운 토글
+            const userInfo = userDropdown.querySelector('.user-info');
+            userInfo.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownContent.classList.toggle('show');
+            });
+            
+            // 드롭다운 외부 클릭 시 닫기
+            document.addEventListener('click', function(e) {
+                if (!userDropdown.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                }
+            });
+            
+            // ESC 키로 드롭다운 닫기
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    dropdownContent.classList.remove('show');
+                }
+            });
+        }
+    });
+    </script>
+</body>
 </html>  

@@ -1,9 +1,26 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="ko">
+
+
+
+
 <%
-	System.out.println(session.getAttribute("memberNum"));
+// 세션 체크 - 로그인하지 않은 사용자나 일반 사용자는 히스토리백과 알림창 표시
+Integer memberNum = (Integer)session.getAttribute("memberNum");
+String userType = (String)session.getAttribute("userType");
+if(memberNum == null || (!"ADMIN".equals(userType) && !"HOTEL_MANAGER".equals(userType))) {
 %>
+    <script>
+        alert("로그인 후 사용해 주세요.");
+        history.back();
+    </script>
+<%
+    return;
+}
+%>
+
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

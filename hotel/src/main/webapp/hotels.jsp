@@ -104,8 +104,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>호텔 검색 - Hotel Booking System</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Header and Footer CSS */
         * {
             margin: 0;
             padding: 0;
@@ -121,63 +122,289 @@
 
         /* Header */
         .header {
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             position: sticky;
             top: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
-        .nav-container {
+        .header-container {
             max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
+            padding: 1.2rem 2rem;
+        }
+
+        .nav {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+            margin: 0;
+            padding: 0;
+            margin-left: auto;
+            margin-right: 2rem;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c5aa0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
             text-decoration: none;
-        }
-
-        .nav-menu {
             display: flex;
-            list-style: none;
-            gap: 2rem;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
         }
 
-        .nav-menu a {
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #ffd700;
+        }
+
+        .nav a {
             text-decoration: none;
-            color: #333;
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-menu a:hover, .nav-menu a.active {
-            color: #2c5aa0;
-        }
-
-        .logout-btn {
-            background: #dc3545;
-            color: white !important;
+            font-size: 1rem;
+            transition: all 0.3s ease;
             padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.3s;
+            border-radius: 25px;
+            position: relative;
+        }
+
+        .nav a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav a.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #ffd700;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav a:hover::after,
+        .nav a.active::after {
+            width: 80%;
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
             font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        .logout-btn:hover {
-            background: #c82333;
-            color: white !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-outline {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            background: transparent;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+        }
+
+        /* User Dropdown */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info i {
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+
+        .user-info span {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            z-index: 1001;
+            margin-top: 0.8rem;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .user-dropdown-content a {
+            color: #333;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .user-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .user-dropdown-content a:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .user-dropdown-content.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: #ecf0f1;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: #bdc3c7;
+            text-decoration: none;
+            line-height: 1.8;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #34495e;
+            color: #bdc3c7;
         }
 
         /* Main Content */
@@ -588,20 +815,58 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="nav-container">
+        <div class="header-container">
             <a href="index.jsp" class="logo">
-                <i class="fas fa-hotel"></i> Hotel Booking
+                <i class="fas fa-hotel"></i>
+                <span>Hotel Booking</span>
             </a>
-            <nav class="nav-menu">
+            
+            <nav class="nav">
                 <a href="index.jsp">홈</a>
-                <a href="hotels.jsp" class="active">호텔</a>
-                <a href="reservations.jsp">예약</a>
-                <a href="community.jsp">커뮤니티</a>
-                <a href="login.jsp">로그인</a>
-                <a href="logout" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> 로그아웃
-                </a>
+                <a href="hotels.jsp">호텔 검색</a>
+                <a href="reservations.jsp">예약 내역</a>
             </nav>
+            
+            <div class="auth-buttons">
+                <%
+                    boolean isAutoLogin = false;
+                    String autoLoginUserId = null;
+                    Cookie[] cookies = request.getCookies();
+                    if (cookies != null) {
+                        for (Cookie cookie : cookies) {
+                            if ("autoLogin".equals(cookie.getName())) {
+                                isAutoLogin = true;
+                                autoLoginUserId = cookie.getValue();
+                                break;
+                            }
+                        }
+                    }
+                    String username = (String)session.getAttribute("username");
+                    String name = (String)session.getAttribute("name");
+                    Integer memberNum = (Integer)session.getAttribute("memberNum");
+                    boolean isLoggedIn = (username != null) || isAutoLogin;
+                    if (isAutoLogin && username == null && autoLoginUserId != null) {
+                        session.setAttribute("username", autoLoginUserId);
+                        isLoggedIn = true;
+                    }
+                %>
+                <% if (isLoggedIn) { %>
+                    <div class="user-dropdown">
+                        <div class="user-info">
+                            <i class="fas fa-user-circle"></i>
+                            <span><%= name != null ? name : (username != null ? username : autoLoginUserId) %></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="user-dropdown-content">
+                            <a href="reservations.jsp">예약 내역</a>
+                            <a href="logout.jsp">로그아웃</a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="login.jsp" class="btn btn-outline">로그인</a>
+                    <a href="register.jsp" class="btn btn-primary">회원가입</a>
+                <% } %>
+            </div>
         </div>
     </header>
 
@@ -823,5 +1088,69 @@
             </div>
         </main>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Hotel Booking</h3>
+                    <p>최고의 호텔 예약 서비스로 편리하고 안전한 여행을 경험하세요.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>고객 지원</h3>
+                    <p><a href="#">고객센터</a></p>
+                    <p><a href="#">자주 묻는 질문</a></p>
+                    <p><a href="#">문의하기</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>서비스</h3>
+                    <p><a href="#">호텔 검색</a></p>
+                    <p><a href="#">예약 관리</a></p>
+                    <p><a href="#">리뷰 작성</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>회사 정보</h3>
+                    <p><a href="#">회사 소개</a></p>
+                    <p><a href="#">이용약관</a></p>
+                    <p><a href="#">개인정보처리방침</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Hotel Booking System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // 드롭다운 클릭 이벤트 처리
+        document.addEventListener('DOMContentLoaded', function() {
+            const userDropdown = document.querySelector('.user-dropdown');
+            const dropdownContent = document.querySelector('.user-dropdown-content');
+            
+            if (userDropdown && dropdownContent) {
+                // 사용자 정보 클릭 시 드롭다운 토글
+                const userInfo = userDropdown.querySelector('.user-info');
+                userInfo.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownContent.classList.toggle('show');
+                });
+                
+                // 드롭다운 외부 클릭 시 닫기
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target)) {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+                
+                // ESC 키로 드롭다운 닫기
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

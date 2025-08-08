@@ -91,6 +91,7 @@ public class AdminLoginServlet extends HttpServlet {
                     System.out.println(session.getAttribute("memberNum"));
                     session.setAttribute("username", rs.getString("username"));
                     session.setAttribute("name", rs.getString("name"));
+                    session.setAttribute("userType", rs.getString("user_type"));
                     return rs.getString("user_type");
                 } else {
                     request.setAttribute("msg", "계정 상태가 올바르지 않습니다.");
