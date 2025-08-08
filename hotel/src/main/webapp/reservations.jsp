@@ -55,7 +55,7 @@
 	        PostVO post = new PostVO();
 	        post.setTitle(rs.getString(1));   // 객실 제목
 	        post.setContent(rs.getString(2)); // 객실 설명
-	        post.setPrices(rs.getInt(3));
+	        post.setPrice(rs.getInt(3));		
 	        roomTypes.add(post);
 	    }
 

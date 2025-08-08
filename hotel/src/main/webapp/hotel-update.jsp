@@ -1,13 +1,103 @@
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.List"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html lang="ko">
+<%@ page import="java.sql.*, utils.*, vo.*" %>
+
 <%
-	System.out.println(session.getAttribute("memberNum"));
-%>
+	String fileName = null;
+	Connection conn = DBCPUtil.getConnection();
+	PreparedStatement pstmt = null;
+	ResultSet rs = null;
+	List<PostVO> facility = new ArrayList<>(); // 편의 시설 목록
+	List<PostVO> roomType = new ArrayList<>(); // 객실 목록
+	
+		// 등록한 호텔 게시물 수정
+		String postId = request.getParameter("postId");
+		int post_id = 0;
+		if(postId != null){
+			post_id = Integer.parseInt(postId);
+		}
+		
+		PostVO hotelPost = null;
+		try{
+			String sql = "SELECT post_id, title, phone, content, address, city, country, file_name FROM posts WHERE post_id = ? AND post_type = ?";
+
+			conn = DBCPUtil.getConnection();						
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, post_id);
+			pstmt.setString(2, "HOTEL");
+	        rs = pstmt.executeQuery();				        
+			if(rs.next()){
+				hotelPost = new PostVO();
+				hotelPost.setPostId(rs.getInt(1));
+				hotelPost.setTitle(rs.getString(2));
+				hotelPost.setPhone(rs.getString(3));
+				hotelPost.setContent(rs.getString(4));
+				hotelPost.setAddress(rs.getString(5));
+				hotelPost.setCity(rs.getString(6));
+				hotelPost.setCountry(rs.getString(7));
+				fileName = rs.getString(8);
+				// filname.jpg,filname2.png
+				if(fileName != null && !fileName.trim().equals("")){
+					hotelPost.setFileName(fileName.split(","));
+				}
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			DBCPUtil.close(rs, pstmt, conn);
+		}
+		
+		// 등록한 객실 타입
+		try{
+			conn = DBCPUtil.getConnection();
+			String sql = "SELECT title, price, content, room_count FROM posts WHERE  parent_id = ? AND post_type = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, post_id);
+			pstmt.setString(1, "ROOM_TYPE");
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()){
+				PostVO d = new PostVO();
+				d.setTitle(rs.getString(1));
+				d.setPrice(rs.getInt(2));
+				d.setContent(rs.getString(3));
+				d.setRoom_count(rs.getInt(4));
+				roomType.add(d);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			DBCPUtil.close(pstmt,rs,conn);
+		}
+		
+	// 등록한 호텔 시설
+		try{
+			conn = DBCPUtil.getConnection();
+			String sql = "SELECT title,content FROM posts WHERE  WHERE  parent_id = ? AND post_type = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, post_id);
+			pstmt.setString(2, "FACILITY");
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				PostVO s = new PostVO();
+				s.setTitle(rs.getString(1));
+				s.setContent(rs.getString(2));
+				facility.add(s);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			DBCPUtil.close(pstmt,rs,conn);
+		}
+				
+%> 
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>호텔 등록 - Hotel Booking</title>
+    <title>호텔 수정 - Hotel Booking</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -403,34 +493,34 @@
 
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-hotel"></i> 새 호텔 등록</h1>
+            <h1><i class="fas fa-hotel"></i> 호텔 수정 페이지</h1>
             <p>호텔의 모든 정보를 입력하여 등록 신청을 해주세요</p>
         </div>
 
         <div class="form-container">
-            <form action="upload" method="POST" enctype="multipart/form-data">
+            <form action="upload" method="POST" enctype="multipart/form-data">                   
                 
                 <!-- 기본 정보 -->
                 <div class="form-section">
                     <div class="section-title">
-                        <i class="fas fa-info-circle"></i> 호텔 기본 정보
+                        <i class="fas fa-info-circle"></i> 호텔 수정
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="title">호텔명 *</label>
-                            <input type="text" id="title" name="hotel_title" placeholder="호텔명을 입력하세요" required>
+                            <input type="text" id="title" name="hotel_title" value="<%=hotelPost.getTitle() %>" required>
                         </div>
                         <div class="form-group">
                             <label for="phone">전화번호 *</label>
-                            <input type="tel" id="phone" name="hotel_phone" placeholder="02-1234-5678" required>
+                            <input type="tel" id="phone" name="hotel_phone" value="<%=hotelPost.getPhone() %>" required>
                         </div>
                     </div>
                     
                     <div class="form-row full">
                         <div class="form-group">
                             <label for="content">호텔 설명 *</label>
-                            <textarea id="content" name="hotel_content" placeholder="호텔에 대한 상세 설명을 입력하세요" required></textarea>
+                            <textarea id="content" name="hotel_content" required><%=hotelPost.getContent() %></textarea>
                         </div>
                     </div>
                 </div>
@@ -444,24 +534,26 @@
                     <div class="form-row full">
                         <div class="form-group">
                             <label for="address">주소 *</label>
-                            <input type="text" id="address" name="hotel_address" placeholder="상세 주소를 입력하세요" required>
+                            <input type="text" id="address" name="hotel_address" value="<%=hotelPost.getAddress() %>" required>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="city">도시 *</label>
-                            <input type="text" id="city" name="hotel_city" placeholder="도시명" required>
+                            <input type="text" id="city" name="hotel_city" value="<%=hotelPost.getCity() %>" required>
                         </div>
+                    
                         <div class="form-group">
                             <label for="country">국가 *</label>
                             <select id="country" name="hotel_country" required>
                                 <option value="">국가 선택</option>
-                                <option value="KR" selected>대한민국</option>
-                                <option value="JP">일본</option>
-                                <option value="CN">중국</option>
-                                <option value="US">미국</option>
-                                <option value="TH">태국</option>
+                 
+                                <option <%=hotelPost.getCountry().equals("KR") ? "selected" : "" %> value="KR">대한민국</option>
+                                <option <%=hotelPost.getCountry().equals("JP") ? "selected" : "" %>value="JP">일본</option>
+                                <option <%=hotelPost.getCountry().equals("CH") ? "selected" : "" %>value="CN">중국</option>
+                                <option <%=hotelPost.getCountry().equals("US") ? "selected" : "" %>value="US">미국</option>
+                                <option <%=hotelPost.getCountry().equals("TH") ? "selected" : "" %>value="TH">태국</option>
                             </select>
                         </div>
                     </div>
@@ -473,12 +565,14 @@
                         <i class="fas fa-bed"></i> 객실 타입 및 가격
                     </div>
                     
+                    <%if(roomType != null && !roomType.isEmpty()){%>
+                        <%for(PostVO c : roomType){ %>
                     <div class="dynamic-section">
                         <div id="roomTypes">
                             <div class="dynamic-item">
                                 <div class="form-group">
                                     <label>객실 타입명 *</label>
-                                    <input type="text" name="room_titles" placeholder="예: 스탠다드룸" required>
+                                    <input type="text" name="room_titles" value="<%=c.getTitle() %>" required>
                                 </div>
                                 <div class="form-group">
                                     <label>1박 요금 (원) *</label>
@@ -492,14 +586,11 @@
                                     <label>객실 설명</label>
                                     <input type="text" name="room_contents" placeholder="객실에 대한 간단한 설명">
                                 </div>
-                                <button type="button" class="btn-remove" onclick="removeRoomType(this)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
                             </div>
                         </div>
-                        <button type="button" class="btn-add" onclick="addRoomType()">
-                            <i class="fas fa-plus"></i> 객실 타입 추가
-                        </button>
+				      <%} %>
+                   <%} %>
+
                     </div>
                 </div>
 
@@ -511,23 +602,22 @@
                     
                     <div class="dynamic-section">
                         <div id="facilities">
+                        <%if(facility != null){%>
+                        	<%for(PostVO f : facility){ %>
                             <div class="dynamic-item">
                                 <div class="form-group">
                                     <label>시설명 *</label>
-                                    <input type="text" name="facility_titles" placeholder="예: 무료 Wi-Fi" required>
+                                    <input type="text" name="facility_titles" value="<%=f.getTitle() %>" required>
                                 </div>
                                 <div class="form-group">
                                     <label>시설 설명</label>
-                                    <input type="text" name="facility_contents" placeholder="시설에 대한 상세 설명">
+                                    <input type="text" name="facility_contents"value="<%=f.getContent() %>" required>
                                 </div>
-                                <button type="button" class="btn-remove" onclick="removeFacility(this)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
                             </div>
+                            <%} %>
+                     	<%} %>
                         </div>
-                        <button type="button" class="btn-add" onclick="addFacility()">
-                            <i class="fas fa-plus"></i> 시설 추가
-                        </button>
+
                     </div>
                 </div>
 
