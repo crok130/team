@@ -1,12 +1,153 @@
+<%@page import="java.util.*" %>
+<%@page import="java.sql.*, utils.*,vo.*"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<%
+	// 사용자 요청 페이지 번호 - 기본값은 1
+	int pageNum = 1;
+	
+	// 한페이지에 보여줄 게시물(행) 개수 - 기본값 10
+	int perPageNum = 10;
+	
+	// 사용자가 보려는 페이지 번호를 strPage에 저장
+	String strPage = request.getParameter("page"); 
+	if(strPage != null){
+		// 페이지 번호가 있으면 숫자로 바꿔서 pageNum에 저장
+		pageNum = Integer.parseInt(strPage);
+	}
+	
+	// 페이지당 보여줄 게시물 개수 - 사용자 선택
+	// 한 페이지에 몇 개를 볼지 사용자가 선택한 값을 paramPerPageNum에 저장
+	String paramPerPageNum = request.getParameter("perPageNum");
+	if(paramPerPageNum != null){
+		// paramPerPageNum 값을 숫자로 바꿔서 perPageNum에 저장
+		perPageNum = Integer.parseInt(paramPerPageNum);
+	}
+	
+	// destination이 없으면 ""로 바꿔서 모든 호텔 검색
+	String destination = request.getParameter("destination");
+	if(destination == null){
+		destination = "";
+	}
+	System.out.println(destination);
+	
+	// 호텔 목록 검색	
+	// 검색된 회원정보를 저장할 리스트
+	// 호텔정보 를 저장할 list 객체 생성
+	List<PostVO> list = new ArrayList<>();
+	
+	// DB 연결을 위한 conn, pstmt, rs 객체 생성
+	Connection conn = DBCPUtil.getConnection();
+	PreparedStatement pstmt = null;
+	ResultSet rs = null;
+	/* List<PostVO> list = new ArrayList<>();
+	List<PostVO> facility = new ArrayList<>(); */
+	
+	Criteria cri = new Criteria(pageNum, perPageNum);
+	System.out.println(cri);	
+	try{
+		// 호텔 정보를 DB에서 가져오는 sql 문 생성
+		String sql = "SELECT post_id,title,address,content,file_name,member_num FROM posts ";
+			   sql += " WHERE post_type = 'HOTEL' ";
+			   sql += " AND (title LIKE '%' || ? || '%' " ;
+			   sql += " OR city LIKE '%' || ? || '%' )"; 
+			   sql += " ORDER BY post_id DESC ";
+			   sql += " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+		System.out.println(sql);	   
+		// sql 문을 실행하기 위한 pstmt 객체 생성
+		pstmt = conn.prepareStatement(sql);
+		// 검색 키워드, 시작 행 번호, 한페이지 개수를 sql 문에 넣음
+		pstmt.setString(1, destination);
+		pstmt.setString(2, destination);
+		pstmt.setInt(3, cri.getStartRow());		// 시작 인덱스 번호
+		pstmt.setInt(4, cri.getPerPageNum());	// 보여줄 게시물 개수
+		
+		// 호텔 목록을 검색해서 결과를 rs에 저장
+		rs = pstmt.executeQuery();
+		
+		while(rs.next()){
+			System.out.println("rs.next");
+			// 검색된 한 행의 정보를 PostVO 객체로 만듦
+			// 검색된 한 행의 정보가 한 호텔의 정보
+			PostVO vo = new PostVO();
+			vo.setPostId(rs.getInt(1));
+			vo.setTitle(rs.getString(2));
+			vo.setAddress(rs.getString(3));
+			vo.setContent(rs.getString(4));
+			String fileStr = rs.getString(5);
+			vo.setMemberNum(rs.getLong(6));
+			if (fileStr != null && !fileStr.trim().equals("")) {
+				vo.setFileName((fileStr.split(",")));		
+			}			
+			list.add(vo);
+			if(vo.getAddress() == null){
+				
+			}
+		} // end while
+	}catch(Exception e){
+		e.printStackTrace();
+	}finally{
+		DBCPUtil.close(rs,pstmt,conn);
+		System.out.println(list);
+	}
+	
+
+
+	// 호텔 시설
+	List<PostVO> facility = new ArrayList<>();
+	try{
+		conn = DBCPUtil.getConnection();
+		String sql = "SELECT title,content,parent_id FROM posts WHERE post_type = 'FACILITY'";
+		pstmt = conn.prepareStatement(sql);
+		rs = pstmt.executeQuery();
+		while(rs.next()){
+			PostVO post = new PostVO();
+			post.setTitle(rs.getString(1));
+			post.setContent(rs.getString(2));
+			post.setParentId(rs.getLong(3));
+			facility.add(post);
+		}
+	}catch(Exception e){
+		e.printStackTrace();
+	}finally{
+		DBCPUtil.close(pstmt,rs,conn);
+	}
+
+
+	// 게시글 목록을 저장할 List
+	// 페이지 블럭(이동할 페이지 번호) 정보 처리
+	// 이동할 최대 페이지 번호를 계산하기 위한 전체 게시물 개수 검색
+	
+	conn = DBCPUtil.getConnection();
+	String sql = "SELECT count(*) FROM posts  WHERE post_type = 'HOTEL'";
+	sql += " AND (title LIKE '%' || ? || '%' " ;
+    sql += " OR city LIKE '%' || ? || '%' )"; 
+	pstmt = conn.prepareStatement(sql);
+	pstmt.setString(1, destination);
+	pstmt.setString(2, destination);
+	rs = pstmt.executeQuery();
+	// 전체 게시물(행) 개수를 저장할 변수
+	int totalCount = 0;
+	
+	if(rs.next()){
+		totalCount = rs.getInt(1);
+	}
+	System.out.println("전체 게시물 개수 : " + totalCount);
+	
+	DBCPUtil.close(rs, pstmt, conn);
+	
+	PageMaker pm = new PageMaker(cri, totalCount, 10);
+	System.out.println(pm);
+%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>호텔 검색 - Hotel Booking System</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Header and Footer CSS */
         * {
             margin: 0;
             padding: 0;
@@ -22,63 +163,289 @@
 
         /* Header */
         .header {
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             position: sticky;
             top: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
-        .nav-container {
+        .header-container {
             max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
+            padding: 1.2rem 2rem;
+        }
+
+        .nav {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+            margin: 0;
+            padding: 0;
+            margin-left: auto;
+            margin-right: 2rem;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c5aa0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
             text-decoration: none;
-        }
-
-        .nav-menu {
             display: flex;
-            list-style: none;
-            gap: 2rem;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
         }
 
-        .nav-menu a {
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #ffd700;
+        }
+
+        .nav a {
             text-decoration: none;
-            color: #333;
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-menu a:hover, .nav-menu a.active {
-            color: #2c5aa0;
-        }
-
-        .logout-btn {
-            background: #dc3545;
-            color: white !important;
+            font-size: 1rem;
+            transition: all 0.3s ease;
             padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.3s;
+            border-radius: 25px;
+            position: relative;
+        }
+
+        .nav a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav a.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #ffd700;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav a:hover::after,
+        .nav a.active::after {
+            width: 80%;
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
             font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        .logout-btn:hover {
-            background: #c82333;
-            color: white !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-outline {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            background: transparent;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+        }
+
+        /* User Dropdown */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info i {
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+
+        .user-info span {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            z-index: 1001;
+            margin-top: 0.8rem;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .user-dropdown-content a {
+            color: #333;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .user-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .user-dropdown-content a:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .user-dropdown-content.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: #ecf0f1;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: #bdc3c7;
+            text-decoration: none;
+            line-height: 1.8;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #34495e;
+            color: #bdc3c7;
         }
 
         /* Main Content */
@@ -489,30 +856,68 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="nav-container">
+        <div class="header-container">
             <a href="index.jsp" class="logo">
-                <i class="fas fa-hotel"></i> Hotel Booking
+                <i class="fas fa-hotel"></i>
+                <span>Hotel Booking</span>
             </a>
-            <nav class="nav-menu">
+            
+            <nav class="nav">
                 <a href="index.jsp">홈</a>
-                <a href="hotels.jsp" class="active">호텔</a>
-                <a href="reservations.jsp">예약</a>
-                <a href="community.jsp">커뮤니티</a>
-                <a href="login.jsp">로그인</a>
-                <a href="logout.jsp" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> 로그아웃
-                </a>
+                <a href="hotels.jsp">호텔 검색</a>
+                <a href="reservations.jsp">예약 내역</a>
             </nav>
+            
+            <div class="auth-buttons">
+                <%
+                    boolean isAutoLogin = false;
+                    String autoLoginUserId = null;
+                    Cookie[] cookies = request.getCookies();
+                    if (cookies != null) {
+                        for (Cookie cookie : cookies) {
+                            if ("autoLogin".equals(cookie.getName())) {
+                                isAutoLogin = true;
+                                autoLoginUserId = cookie.getValue();
+                                break;
+                            }
+                        }
+                    }
+                    String username = (String)session.getAttribute("username");
+                    String name = (String)session.getAttribute("name");
+                    Integer memberNum = (Integer)session.getAttribute("memberNum");
+                    boolean isLoggedIn = (username != null) || isAutoLogin;
+                    if (isAutoLogin && username == null && autoLoginUserId != null) {
+                        session.setAttribute("username", autoLoginUserId);
+                        isLoggedIn = true;
+                    }
+                %>
+                <% if (isLoggedIn) { %>
+                    <div class="user-dropdown">
+                        <div class="user-info">
+                            <i class="fas fa-user-circle"></i>
+                            <span><%= name != null ? name : (username != null ? username : autoLoginUserId) %></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="user-dropdown-content">
+                            <a href="reservations.jsp">예약 내역</a>
+                            <a href="logout.jsp">로그아웃</a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="login.jsp" class="btn btn-outline">로그인</a>
+                    <a href="register.jsp" class="btn btn-primary">회원가입</a>
+                <% } %>
+            </div>
         </div>
     </header>
 
     <!-- Search Section -->
     <section class="search-section">
         <div class="container">
-            <form class="search-form" action="#" method="GET">
+            <form class="search-form" action="hotels.jsp" method="GET">
                 <div class="form-group">
                     <label for="destination">목적지</label>
-                    <input type="text" id="destination" name="destination" placeholder="도시 또는 호텔명 입력">
+                    <input type="text" id="destination" name="destination" placeholder="도시 또는 호텔명 입력" value="${param.destination}">
                 </div>
                 <div class="form-group">
                     <label for="checkin">체크인</label>
@@ -642,155 +1047,153 @@
                     </select>
                 </div>
             </div>
-
+            <%  // TODO 제거 %>
+           <h1>리스트 출력</h1>
+		<%if(list != null){ %>
+        	<%for(PostVO p : list){ %>
             <div class="hotels-grid">
                 <!-- Hotel Card 1 -->
-                <div class="hotel-card">
-                    <div class="hotel-card-content">
-                        <div class="hotel-image">
-                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="서울 그랜드 호텔">
-                            <div class="image-gallery">
-                                <i class="fas fa-images"></i> 12장
-                            </div>
-                        </div>
-                        <div class="hotel-info">
-                            <div class="hotel-header">
-                                <div>
-                                    <h3 class="hotel-name">서울 그랜드 호텔</h3>
-                                    <div class="hotel-rating">
-                                        <span class="rating-stars">★★★★★</span>
-                                        <span class="rating-score">9.2</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hotel-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                서울시 중구 명동길 123
-                            </div>
-                            <div class="hotel-amenities">
-                                <span class="amenity-tag">무료 Wi-Fi</span>
-                                <span class="amenity-tag">수영장</span>
-                                <span class="amenity-tag">주차장</span>
-                                <span class="amenity-tag">피트니스</span>
-                            </div>
-                            <p class="hotel-description">
-                                서울 중심가에 위치한 럭셔리 호텔입니다. 명동 쇼핑가와 가까우며 훌륭한 시설과 서비스를 제공합니다.
-                            </p>
-                        </div>
-                        <div class="hotel-pricing">
-                            <div class="price-info">
-                                <div class="price-per-night">1박 기준</div>
-                                <div class="price-amount">
-                                    120,000<span class="price-currency">원</span>
-                                </div>
-                            </div>
-                            <a href="reservations.jsp?hotel=1" class="book-btn">예약하기</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hotel Card 2 -->
-                <div class="hotel-card">
-                    <div class="hotel-card-content">
-                        <div class="hotel-image">
-                            <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="부산 오션뷰 호텔">
-                            <div class="image-gallery">
-                                <i class="fas fa-images"></i> 8장
-                            </div>
-                        </div>
-                        <div class="hotel-info">
-                            <div class="hotel-header">
-                                <div>
-                                    <h3 class="hotel-name">부산 오션뷰 호텔</h3>
-                                    <div class="hotel-rating">
-                                        <span class="rating-stars">★★★★☆</span>
-                                        <span class="rating-score">8.7</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hotel-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                부산시 해운대구 해운대로 456
-                            </div>
-                            <div class="hotel-amenities">
-                                <span class="amenity-tag">오션뷰</span>
-                                <span class="amenity-tag">레스토랑</span>
-                                <span class="amenity-tag">스파</span>
-                                <span class="amenity-tag">발레파킹</span>
-                            </div>
-                            <p class="hotel-description">
-                                해운대 해변이 바로 앞에 있는 오션뷰 호텔입니다. 모든 객실에서 아름다운 바다 전망을 감상하실 수 있습니다.
-                            </p>
-                        </div>
-                        <div class="hotel-pricing">
-                            <div class="price-info">
-                                <div class="price-per-night">1박 기준</div>
-                                <div class="price-amount">
-                                    95,000<span class="price-currency">원</span>
-                                </div>
-                            </div>
-                            <a href="reservations.jsp?hotel=2" class="book-btn">예약하기</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hotel Card 3 -->
-                <div class="hotel-card">
-                    <div class="hotel-card-content">
-                        <div class="hotel-image">
-                            <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="제주 리조트">
-                            <div class="image-gallery">
-                                <i class="fas fa-images"></i> 15장
-                            </div>
-                        </div>
-                        <div class="hotel-info">
-                            <div class="hotel-header">
-                                <div>
-                                    <h3 class="hotel-name">제주 힐링 리조트</h3>
-                                    <div class="hotel-rating">
-                                        <span class="rating-stars">★★★★★</span>
-                                        <span class="rating-score">9.5</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hotel-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                제주시 애월읍 해안로 789
-                            </div>
-                            <div class="hotel-amenities">
-                                <span class="amenity-tag">수영장</span>
-                                <span class="amenity-tag">골프장</span>
-                                <span class="amenity-tag">키즈클럽</span>
-                                <span class="amenity-tag">조식포함</span>
-                            </div>
-                            <p class="hotel-description">
-                                제주의 아름다운 자연 속에서 힐링할 수 있는 프리미엄 리조트입니다. 가족 단위 여행객에게 최적화된 시설을 제공합니다.
-                            </p>
-                        </div>
-                        <div class="hotel-pricing">
-                            <div class="price-info">
-                                <div class="price-per-night">1박 기준</div>
-                                <div class="price-amount">
-                                    180,000<span class="price-currency">원</span>
-                                </div>
-                            </div>
-                            <a href="reservations.jsp?hotel=3" class="book-btn">예약하기</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+	   			<form action="reservations.jsp?postid=<%=p.getPostId() %>" method="get">
+	                <div class="hotel-card">
+	                    <div class="hotel-card-content">
+	                        <div class="hotel-image">
+	                        <%if(p.getFileName() != null){ %>
+	                            <img src="img/<%=p.getFileName()[0] %>" alt="호텔이미지가 존재 하지않습니다">
+	                            <input type="hidden" name="membernum" value="<%=p.getMemberNum()%>">
+	                            <div class="image-gallery">
+	                                <i class="fas fa-images"></i> <%=p.getFileName().length %>장
+	                            </div>
+	                         <%} %>
+	                        </div>
+	                        <div class="hotel-info">
+	                            <div class="hotel-header">
+	                                <div>
+	                                	<input type="hidden" name="postid" value="<%=p.getPostId()%>">
+	                                    <h3 class="hotel-name"><%=p.getTitle() %></h3>
+	                                    <div class="hotel-rating">
+	                                        <span class="rating-stars">★★★★★</span>
+	                                        <span class="rating-score">9.2</span>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <div class="hotel-location">
+	                                <i class="fas fa-map-marker-alt"></i>
+	                                <%=p.getAddress() %>
+	                            </div>
+	              		<%if(facility != null){ %>
+	              			<%for(PostVO s : facility){ %>
+	              				<%if(s.getParentId() == p.getPostId()){ %>
+	                            <div class="hotel-amenities">
+	                             	<span class="amenity-tag"><%=s.getTitle() %></span>						
+	                            </div>
+	                            <%} %>
+	                         <%} %>
+						<%} %>
+	                            <p class="hotel-description">
+	                                                        
+	                                <%= p.getContent() %>
+	                            </p>
+	                        </div>
+	                        <div class="hotel-pricing">
+	                        	<input type="submit" class="book-btn" value="예약하기">
+	                        </div>
+	                      
+	                    </div>
+	                </div>
+				</form>
+			</div>
+			<%} %>
+		<%} %>
             <!-- Pagination -->
             <div class="pagination">
-                <a href="#"><i class="fas fa-chevron-left"></i></a>
-                <a href="#" class="active">1</a>
-                <a href="#">2</a>
-                <a href="#">3</a>
-                <a href="#">4</a>
-                <a href="#">5</a>
-                <a href="#"><i class="fas fa-chevron-right"></i></a>
+            	<!-- 시작페이지 1페이지 이동 -->
+				<% if(pm.isFirst()) {%>
+				<a href="?page=1">처음</i></a>
+				<%} %>
+			<!-- 이전 페이지 이동 -->
+			<%if(pm.isPrev()){ %>
+				<a href="?page=<%=pm.getStartPage() - 1%>"><i class="fas fa-chevron-left"></i></a>
+			<%} %>
+		
+			<% for(int i = pm.getStartPage(); i <= pm.getEndPage(); i++){ %>
+				<a href="?page=<%=i%>" <%= cri.getPage() == i ? "class='active'" : "" %> ><%=i%></a>
+			<%} %>
+			
+			<!-- 다음 페이지  -->
+			<% if(pm.isNext()){ %>
+				<a href="?page=<%=pm.getEndPage() + 1%>"><i class="fas fa-chevron-right"></i></a>
+			<% } %>
+			<!-- 마지막 페이지 -->
+			<% if(pm.isLast()){%>
+			<%-- <a href="?page=<%=pm.getMaxPage()%>">[마지막]</a>	 --%>
+			<a href="?page=<%=pm.getMaxPage()%>">[마지막]</a>
+			<%} %>
             </div>
         </main>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Hotel Booking</h3>
+                    <p>최고의 호텔 예약 서비스로 편리하고 안전한 여행을 경험하세요.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>고객 지원</h3>
+                    <p><a href="#">고객센터</a></p>
+                    <p><a href="#">자주 묻는 질문</a></p>
+                    <p><a href="#">문의하기</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>서비스</h3>
+                    <p><a href="#">호텔 검색</a></p>
+                    <p><a href="#">예약 관리</a></p>
+                    <p><a href="#">리뷰 작성</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>회사 정보</h3>
+                    <p><a href="#">회사 소개</a></p>
+                    <p><a href="#">이용약관</a></p>
+                    <p><a href="#">개인정보처리방침</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Hotel Booking System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // 드롭다운 클릭 이벤트 처리
+        document.addEventListener('DOMContentLoaded', function() {
+            const userDropdown = document.querySelector('.user-dropdown');
+            const dropdownContent = document.querySelector('.user-dropdown-content');
+            
+            if (userDropdown && dropdownContent) {
+                // 사용자 정보 클릭 시 드롭다운 토글
+                const userInfo = userDropdown.querySelector('.user-info');
+                userInfo.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownContent.classList.toggle('show');
+                });
+                
+                // 드롭다운 외부 클릭 시 닫기
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target)) {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+                
+                // ESC 키로 드롭다운 닫기
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
-</html> 
+</html>

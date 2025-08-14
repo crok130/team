@@ -19,106 +19,247 @@
             color: #333;
         }
 
+        /* Header Styles */
         .header {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            position: fixed;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
         }
 
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 70px;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #2c5aa0;
-            text-decoration: none;
+            padding: 1.2rem 2rem;
         }
 
         .nav-menu {
             display: flex;
             list-style: none;
-            gap: 2rem;
+            gap: 2.5rem;
+            margin: 0;
+            padding: 0;
+            margin-left: auto;
+            margin-right: 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #ffd700;
         }
 
         .nav-menu a {
             text-decoration: none;
-            color: #333;
+            color: rgba(255, 255, 255, 0.9);
             font-weight: 500;
-            transition: color 0.3s;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            position: relative;
         }
 
         .nav-menu a:hover {
-            color: #2c5aa0;
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn {
-            padding: 0.6rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: #2c5aa0;
-            border: 2px solid #2c5aa0;
-        }
-
-        .btn-outline:hover {
-            background: #2c5aa0;
             color: white;
-        }
-
-        .btn-primary {
-            background: #2c5aa0;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #1e3d6f;
+            background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
         }
 
-        .logout-btn {
-            background: #dc3545;
-            color: white !important;
-            border-color: #dc3545;
+        .nav-menu a.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #ffd700;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-menu a:hover::after,
+        .nav-menu a.active::after {
+            width: 80%;
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
             font-weight: 600;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            transition: all 0.3s;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        .logout-btn:hover {
-            background: #c82333 !important;
-            border-color: #c82333;
-            color: white !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-outline {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            background: transparent;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+        }
+
+        /* User Dropdown */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info i {
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+
+        .user-info span {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            z-index: 1001;
+            margin-top: 0.8rem;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .user-dropdown-content a {
+            color: #333;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .user-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .user-dropdown-content a:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .user-dropdown-content.show {
+            display: block;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Hero Section */
@@ -354,44 +495,45 @@
             color: #2c5aa0;
         }
 
-        /* Footer */
+        /* Footer Styles */
         .footer {
-            background: #333;
+            background: #2c3e50;
             color: white;
-            padding: 3rem 0;
+            padding: 3rem 0 1rem;
         }
 
         .footer-content {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         .footer-section h3 {
             margin-bottom: 1rem;
-            color: #2c5aa0;
+            color: #ecf0f1;
         }
 
-        .footer-section p,
         .footer-section a {
-            color: #ccc;
+            display: block;
+            color: #bdc3c7;
             text-decoration: none;
             margin-bottom: 0.5rem;
-            display: block;
+            transition: color 0.3s;
         }
 
         .footer-section a:hover {
-            color: white;
+            color: #ecf0f1;
         }
 
         .footer-bottom {
             text-align: center;
-            margin-top: 2rem;
             padding-top: 2rem;
-            border-top: 1px solid #555;
-            color: #999;
+            border-top: 1px solid #34495e;
+            color: #bdc3c7;
         }
 
+        /* 반응형 디자인 */
         @media (max-width: 768px) {
             .nav-container {
                 padding: 0 1rem;
@@ -417,27 +559,7 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="nav-container">
-            <div class="logo">
-                <i class="fas fa-hotel"></i> Hotel Booking
-            </div>
-            <nav class="nav-menu">
-                <a href="index.jsp">홈</a>
-                <a href="hotels.jsp">호텔</a>
-                <a href="reservations.jsp">예약</a>
-                <a href="#contact">문의</a>
-            </nav>
-            <div class="auth-buttons">
-                <a href="login.jsp" class="btn btn-outline">로그인</a>
-                <a href="register.jsp" class="btn btn-primary">회원가입</a>
-                <a href="logout.jsp" class="btn btn-outline logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> 로그아웃
-                </a>
-            </div>
-        </div>
-    </header>
+    <jsp:include page="common/header.jsp" />
 
     <!-- Hero Section -->
     <section class="hero">
@@ -591,42 +713,37 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>고객 서비스</h3>
-                    <a href="#">도움말 센터</a>
-                    <a href="#">예약 취소</a>
-                    <a href="#">연락처</a>
-                    <a href="#">FAQ</a>
-                </div>
-                <div class="footer-section">
-                    <h3>회사 정보</h3>
-                    <a href="#">회사 소개</a>
-                    <a href="#">채용 정보</a>
-                    <a href="#">이용약관</a>
-                    <a href="#">개인정보처리방침</a>
-                </div>
-                <div class="footer-section">
-                    <h3>파트너</h3>
-                    <a href="#">호텔 등록</a>
-                    <a href="#">파트너 센터</a>
-                    <a href="#">제휴 문의</a>
-                </div>
-                <div class="footer-section">
-                    <h3>소셜 미디어</h3>
-                    <a href="#">페이스북</a>
-                    <a href="#">인스타그램</a>
-                    <a href="#">트위터</a>
-                    <a href="#">유튜브</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Hotel Booking. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <jsp:include page="common/footer.jsp" />
+    
+    <script>
+        // 드롭다운 클릭 이벤트 처리
+        document.addEventListener('DOMContentLoaded', function() {
+            const userDropdown = document.querySelector('.user-dropdown');
+            const dropdownContent = document.querySelector('.user-dropdown-content');
+            
+            if (userDropdown && dropdownContent) {
+                // 사용자 정보 클릭 시 드롭다운 토글
+                const userInfo = userDropdown.querySelector('.user-info');
+                userInfo.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownContent.classList.toggle('show');
+                });
+                
+                // 드롭다운 외부 클릭 시 닫기
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target)) {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+                
+                // ESC 키로 드롭다운 닫기
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html> 

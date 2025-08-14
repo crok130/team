@@ -1,6 +1,71 @@
+<%@page import="oracle.jdbc.internal.DatabaseSessionState"%>
+<%@page import="java.util.List"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.text.DecimalFormat"%>
+<%@page import="java.util.Calendar"%>
+<%@page import="java.util.Date"%>
+<%@page import="java.text.SimpleDateFormat"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html lang="ko">
+<%@ page import="vo.*, utils.* , java.sql.*"%>
+<%
+System.out.println(session.getAttribute("memberNum"));
+
+// 세션 체크 - 로그인하지 않은 사용자나 일반 사용자는 히스토리백과 알림창 표시
+Integer memberNum = (Integer)session.getAttribute("memberNum");
+String userType = (String)session.getAttribute("userType");
+boolean isLoggedIn = (memberNum != null && ("ADMIN".equals(userType) || "HOTEL_MANAGER".equals(userType)));
+
+if(!isLoggedIn) {
+%>
+    <script>
+        alert("로그인 후 사용해 주세요.");
+        history.back();
+    </script>
+<%
+    return;
+}
+%>
+
+<%
+	
+	String prid = request.getParameter("prid");
+	if(prid == null){
+		prid = "MONTHLY";
+	}
+	DecimalFormat df = new DecimalFormat("#,###");
+	
+	int result = 0;
+	
+	int weeklyCount = 0;
+	int weeklySum = 0;
+	int weeklyMoney = 0;
+	
+	int monthlyCount = 0;
+	int monthlySum = 0;
+	int monthMoney = 0;
+	int totalMonthlyCount = 0;
+	
+	int dailyCount = 0;
+	int dailySum = 0;
+	int dailyMoney = 0;
+	
+	List<Integer> numbers = new ArrayList<>();
+	
+	int lastMonthCount = 0;
+	int lastMonthSum = 0;
+	int lastMonthMoney = 0;
+	int lastMonthCounts = 0;
+	
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    String hotelName = "";
+	
+    String name = null;
+    String Date = null;
+    
+%>
+<!DOCTYPE html><html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -425,8 +490,8 @@
             <div class="admin-user">
                 <div class="user-avatar">
                     <i class="fas fa-user"></i>
-        </div>
-                <span>관리자</span>
+                </div>
+                <span><%= session.getAttribute("name") != null ? session.getAttribute("name") : "관리자" %></span>
                 <a href="logout.jsp" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i> 로그아웃
                 </a>
@@ -545,8 +610,33 @@
                     </div>
                 </div>
             </div>
+<%
 
+	conn = DBCPUtil.getConnection();
+	List<UserVO> list = new ArrayList<>();
+	try{
+		String sql = "SELECT member_num,username,name,email,user_type FROM users WHERE status = 'PENDING'";	
+		pstmt = conn.prepareStatement(sql);
+		rs = pstmt.executeQuery();
+		while(rs.next()){
+			UserVO vo = new UserVO();
+			vo.setMemberNum(rs.getLong(1));
+			vo.setUsername(rs.getString(2));
+			vo.setName(rs.getString(3));
+			vo.setEmail(rs.getString(4));
+			vo.setUserType(rs.getString(5));
+			list.add(vo);
+		}
+	}catch(Exception e){
+		e.printStackTrace();
+	}finally{
+		DBCPUtil.close(pstmt, rs, conn);
+	}
+  
+
+%>
             <!-- Pending Approvals -->
+            <% if ("ADMIN".equals(userType)) { %>
             <section class="content-section">
                 <div class="section-header">
                     <h2 class="section-title">승인 대기 목록</h2>
@@ -554,70 +644,38 @@
                         <i class="fas fa-eye"></i> 전체 보기
                     </a>
                 </div>
-
+			<%if(list != null){ %>
+			<%for(UserVO s : list){ %>
                 <table class="data-table">
                     <thead>
                         <tr>
                             <th>회원번호</th>
                             <th>사용자명</th>
-                            <th>실명</th>
-                            <th>이메일</th>
+     	                    <th>실명</th>
                             <th>사용자 타입</th>
-                            <th>가입일</th>
-                            <th>상태</th>
                             <th>작업</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>1001</td>
-                            <td>manager_kim</td>
-                            <td>김매니저</td>
-                            <td>kim@grandhotel.com</td>
-                            <td><span class="status-badge status-pending">HOTEL_MANAGER</span></td>
-                            <td>2024-01-25</td>
-                            <td><span class="status-badge status-pending">승인 대기</span></td>
+                            <td><%=s.getMemberNum()%></td>
+                            <td><%=s.getUsername()%></td>
+                            <td><%=s.getName() %></td>
+                            <td><span class="status-badge status-pending"><%=s.getUserType() %></span></td>
                             <td>
                                 <div class="action-buttons">
-                                    <a href="#" class="action-btn view">보기</a>
-                                    <a href="#" class="action-btn approve">승인</a>
-                                    <a href="#" class="action-btn reject">거부</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>1002</td>
-                            <td>manager_lee</td>
-                            <td>이호텔</td>
-                            <td>lee@oceanhotel.com</td>
-                            <td><span class="status-badge status-pending">HOTEL_MANAGER</span></td>
-                            <td>2024-01-24</td>
-                            <td><span class="status-badge status-pending">승인 대기</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="#" class="action-btn view">보기</a>
-                                    <a href="#" class="action-btn approve">승인</a>
-                                    <a href="#" class="action-btn reject">거부</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>1003</td>
-                            <td>admin_park</td>
-                            <td>박관리</td>
-                            <td>park@hotelAdmin.com</td>
-                            <td><span class="status-badge status-approved">ADMIN</span></td>
-                            <td>2024-01-23</td>
-                            <td><span class="status-badge status-approved">승인 완료</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="#" class="action-btn view">보기</a>
+                                
+                                    <a href="approve.jsp?approval=approve&membernum=<%=s.getMemberNum() %>" class="action-btn approve">승인</a>
+                                    <a href="approve.jsp?approval=reject&membernum=<%=s.getMemberNum() %>" class="action-btn reject">거부</a>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+                <%} %>
+              <%} %>
             </section>
+            <% } %>
 
             <!-- Recent Activities -->
             <section class="content-section">
@@ -627,67 +685,49 @@
                         <i class="fas fa-history"></i> 전체 기록
                     </a>
                 </div>
-
+				<%
+					// 등록한 호텔 게시물 수정
+					Object memberNumObj = session.getAttribute("memberNum");
+					int memberNums = Integer.parseInt(memberNum.toString());		
+					List<PostVO> post = new ArrayList<>();
+					try{
+						String sql = "SELECT post_id, title,content FROM posts WHERE post_type = 'HOTEL' And member_num = ?";
+						conn = DBCPUtil.getConnection();						
+						pstmt = conn.prepareStatement(sql);
+						pstmt.setInt(1, memberNums);
+				        rs = pstmt.executeQuery();				        
+				        while(rs.next()){
+				        	PostVO vo = new PostVO();
+				        	vo.setPostId(rs.getInt(1));
+				        	vo.setTitle(rs.getString(2));
+				        	vo.setContent(rs.getString(3)); 
+				        	post.add(vo);
+				        }
+					}catch(Exception e){
+						e.printStackTrace();
+					}finally{
+						DBCPUtil.close(rs, pstmt, conn);
+					}
+				%>				
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>시간</th>
-                            <th>활동 유형</th>
-                            <th>사용자명</th>
-                            <th>대상</th>
-                            <th>설명</th>
-                            <th>상태</th>
+                            <th>게시글번호</th>
+                            <th>호텔 이름</th>
+                            <th>수정 및 삭제</th>
                         </tr>
                     </thead>
                     <tbody>
+                    <%if(post != null){ %>
+                    	<%for(PostVO p : post){ %>
                         <tr>
-                            <td>14:30</td>
-                            <td>USER 가입</td>
-                            <td>kim_user</td>
-                            <td>member_num: 1005</td>
-                            <td>새 일반 회원이 가입했습니다</td>
-                            <td><span class="status-badge status-approved">완료</span></td>
+                            <td><%= p.getPostId() %></td>
+                            <td><%= p.getTitle() %></td>
+                            <td><a href="hotel-update.jsp?postId=<%= p.getPostId() %>"><span class="status-badge status-approved">수정</span></a></td>
+                            <td><a href="hotel-delete.jsp?postId=<%= p.getPostId() %>"><span class="status-badge status-approved">삭제</span></a></td>
                         </tr>
-                        <tr>
-                            <td>13:45</td>
-                            <td>RESERVATION 생성</td>
-                            <td>lee_travel</td>
-                            <td>reservation_id: 25</td>
-                            <td>그랜드 호텔 - 스탠다드룸 예약</td>
-                            <td><span class="status-badge status-approved">CONFIRMED</span></td>
-                        </tr>
-                        <tr>
-                            <td>12:20</td>
-                            <td>COMMENT 작성</td>
-                            <td>park_guest</td>
-                            <td>comment_id: 15</td>
-                            <td>부산 오션뷰 호텔 리뷰 (평점: 4.5)</td>
-                            <td><span class="status-badge status-approved">게시</span></td>
-                        </tr>
-                        <tr>
-                            <td>11:15</td>
-                            <td>HOTEL 등록</td>
-                            <td>manager_choi</td>
-                            <td>post_id: 12</td>
-                            <td>대구 시티 호텔 등록 신청</td>
-                            <td><span class="status-badge status-pending">승인 대기</span></td>
-                        </tr>
-                        <tr>
-                            <td>10:30</td>
-                            <td>HOTEL_MANAGER 신청</td>
-                            <td>jung_admin</td>
-                            <td>member_num: 1006</td>
-                            <td>호텔 매니저 가입 신청</td>
-                            <td><span class="status-badge status-pending">검토중</span></td>
-                        </tr>
-                        <tr>
-                            <td>09:45</td>
-                            <td>ROOM_TYPE 등록</td>
-                            <td>manager1</td>
-                            <td>post_id: 18</td>
-                            <td>그랜드 호텔 - 이그제큐티브 스위트 추가</td>
-                            <td><span class="status-badge status-approved">완료</span></td>
-                        </tr>
+                        <%} %>
+					<%} %>
                     </tbody>
                 </table>
             </section>
@@ -697,12 +737,14 @@
                 <div class="section-header">
                     <h2 class="section-title">매출 통계 (sales_statistics)</h2>
                     <div>
-                        <select class="btn btn-outline">
-                            <option>이번 달 (MONTHLY)</option>
-                            <option>지난 달 (MONTHLY)</option>
-                            <option>최근 주간 (WEEKLY)</option>
-                            <option>일별 현황 (DAILY)</option>
+                    <form action="admin-dashboard.jsp" method="get" id="periodForm">
+                        <select class="btn btn-outline" name="prid" onchange="submitForm();">
+                            <option value="MONTHLY" <%= prid.equals("MONTHLY") ? "selected" : "" %>>이번 달 (MONTHLY)</option>
+                            <option value="LASTMONTHLY"<%= prid.equals("LASTMONTHLY") ? "selected" : "" %>>지난 달 (LASTMONTHLY)</option>
+                            <option value="WEEKLY"<%= prid.equals("WEEKLY") ? "selected" : "" %>>최근 주간 (WEEKLY)</option>
+                            <option value="DAILY" <%= prid.equals("DAILY") ? "selected" : "" %>>일별 현황 (DAILY)</option>
                         </select>
+                       </form>
                     </div>
                 </div>
 
@@ -739,49 +781,381 @@
                         <tr>
                             <th>호텔명</th>
                             <th>매니저</th>
-                            <th>기간</th>
                             <th>총예약</th>
-                            <th>확정예약</th>
                             <th>총매출</th>
-                            <th>확정매출</th>
-                            <th>취소건수</th>
-                            <th>평균주문</th>
+                            <th>평균매출</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>그랜드 호텔</td>
-                            <td>김호텔</td>
-                            <td>2024-03 (MONTHLY)</td>
-                            <td>15</td>
-                            <td>12</td>
-                            <td>₩3,600,000</td>
-                            <td>₩2,880,000</td>
-                            <td>3</td>
-                            <td>₩240,000</td>
-                        </tr>
-                        <tr>
-                            <td>부산 오션뷰 호텔</td>
-                            <td>이오션</td>
-                            <td>2024-03 (MONTHLY)</td>
-                            <td>8</td>
-                            <td>7</td>
-                            <td>₩1,800,000</td>
-                            <td>₩1,575,000</td>
-                            <td>1</td>
-                            <td>₩225,000</td>
-                        </tr>
-                        <tr>
-                            <td>그랜드 호텔</td>
-                            <td>김호텔</td>
-                            <td>2024-02 (MONTHLY)</td>
-                            <td>20</td>
-                            <td>18</td>
-                            <td>₩4,200,000</td>
-                            <td>₩3,780,000</td>
-                            <td>2</td>
-                            <td>₩210,000</td>
-                        </tr>
+ 			<%
+
+ 							int member_num = (int)session.getAttribute("memberNum");
+ 							System.out.println(member_num);
+ 							try{
+ 								conn = DBCPUtil.getConnection();
+ 								String sql = "SELECT post_id from posts WHERE member_num = ? AND post_type = 'HOTEL'";
+ 								pstmt.setInt(1, member_num);
+
+ 								pstmt = conn.prepareStatement(sql);
+ 								rs = pstmt.executeQuery();
+ 								while(rs.next()){
+ 									result = rs.getInt(1);
+ 									numbers.add(result);
+ 									
+ 								}
+ 								
+ 							}catch(Exception e){
+ 								
+ 							}finally{
+ 								
+ 							}
+
+						    // 1. 달력 가져오기 (오늘 날짜 기준)
+						    Calendar cal = Calendar.getInstance();
+
+						    // 2. 날짜 형식 설정 (예: 2024-12-16)
+						    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+						    // 3. 이번주 월요일 찾기
+						    cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);  // 오늘을 이번주 월요일로 바꾸기
+						    String monday = sdf.format(cal.getTime());        // 월요일을 문자열로 변환
+
+						    // 4. 이번주 일요일 찾기 (월요일 + 6일)
+						    cal.add(Calendar.DATE, 6);       // 월요일에서 6일 더하기 = 일요일
+						    String sunday = sdf.format(cal.getTime());        // 일요일을 문자열로 변환
+
+						    // 5. 결과 출력
+
+						    
+						    
+
+				for(int s : numbers){
+						   	try{
+						   		conn = DBCPUtil.getConnection();
+						   		String sql = "SELECT total_amount FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM-DD') BETWEEN '"+monday+"' AND '"+sunday+"'";
+						   			   sql += " AND hotel_post_id = ?";
+						   		pstmt = conn.prepareStatement(sql);
+						   		pstmt.setInt(1, s);
+						   		
+						   		
+						        rs = pstmt.executeQuery();
+						
+								while(rs.next()){
+									int money = rs.getInt(1);
+									weeklyMoney += money;
+								}
+				
+						    } catch (Exception e) {
+						        e.printStackTrace();
+						    } finally {
+								DBCPUtil.close(pstmt, rs, conn);
+						    }  
+						 				   
+						   	try{
+						   		conn = DBCPUtil.getConnection();
+						   		String sql = "SELECT COUNT(*) FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM-DD') BETWEEN '"+monday+"' AND '"+sunday+"'";
+					   			   sql += " AND hotel_post_id = ?";
+					   			pstmt = conn.prepareStatement(sql);
+					   			pstmt.setInt(1, s);
+					   			rs = pstmt.executeQuery();
+					   			
+					   			if(rs.next()){
+					   				weeklyCount = rs.getInt(1);
+					   			}
+					   			
+						   	}catch(Exception e){
+						   		e.printStackTrace();
+						   	}finally{
+						   		DBCPUtil.close(pstmt, rs, conn);
+						   	}
+				}
+							
+						   	if(weeklyCount == 0){
+							   	weeklySum = 0;
+
+
+						   	}else{
+						   		weeklySum = weeklyMoney / weeklyCount;
+						   	}
+						   	
+						   	String weekformattedNumber = df.format(weeklySum);
+				 	
+						   	// 주데이터 출력
+						   	
+						   	Date today = new Date();
+						   	sdf = new SimpleDateFormat("yyyy-MM");
+							String monthStr = sdf.format(today);
+							
+							
+							
+						for(int s : numbers){
+						  	try{
+						  		
+						  		conn = DBCPUtil.getConnection();
+						  		String sql = "SELECT total_amount FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM')= ?";
+						  		 sql += " AND hotel_post_id = ?";
+						  		pstmt = conn.prepareStatement(sql);
+						  		pstmt.setString(1, monthStr);
+						  		pstmt.setInt(2, s);
+						  		rs = pstmt.executeQuery();
+						  		
+						  		while(rs.next()){
+						  			int money = rs.getInt(1);
+						  			monthMoney += money;
+						  		}
+						  	}catch(Exception e){
+						  		e.printStackTrace();
+						  	}finally{
+						  		DBCPUtil.close(pstmt, rs, conn);
+						  	}
+						  	
+
+						  	try{
+						   		conn = DBCPUtil.getConnection();
+						   		String sql = "SELECT COUNT(*) FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM') = ?";
+					   			   sql += " AND hotel_post_id = ?";
+					   			pstmt = conn.prepareStatement(sql);
+					   			pstmt.setString(1,monthStr);
+					   			pstmt.setInt(2, s);
+					   			rs = pstmt.executeQuery();
+					   			
+					   			if(rs.next()){
+					   				monthlyCount = rs.getInt(1);
+					   				totalMonthlyCount += monthlyCount;
+					   			}
+					   			
+						   	}catch(Exception e){
+						   		e.printStackTrace();
+						   	}finally{
+						   		DBCPUtil.close(pstmt, rs, conn);
+						   	}
+						  	
+						 }
+						
+						  	// ------------------------------------------------------
+						  	
+						   	if(monthlyCount == 0){
+							   	monthlySum = 0;
+
+						   	}else{
+						   		monthlySum = monthMoney / monthlyCount;
+						   	}
+						   	String monthformattedNumber = df.format(monthlySum);
+						  	// 월별 
+						   	
+						   	String lastMonthStr = monthStr.substring(monthStr.length() -2 , monthStr.length());
+						   	
+						  	int lastMonth = Integer.parseInt(lastMonthStr) -1;
+						  	String year = monthStr.substring(0 , 5);
+						  	
+						  	if(lastMonth == 0){
+						  		lastMonth = 12;
+						  		year = monthStr.substring(0 , 4);
+						  		int years = Integer.parseInt(year) -1;
+						  		year = years+"-";
+						  	}
+						  	
+						  	if(lastMonth == 1){
+						  		lastMonth = 12;
+						  	}
+						  	String last = null;
+						  	if(lastMonth < 10){
+						  		last = "0" + lastMonth;
+						  	}
+						  	
+						 	
+						  
+						  	StringBuilder stb = new StringBuilder();
+
+						  	stb.append(year).append(last);
+						  	
+						
+						  	System.out.println(stb);
+						  	
+						  	
+						  	
+						  	
+						  	
+						  				  	
+			// ----------------------------------------------------------------------------------------------------------------------			  	
+						  	
+				for(int s : numbers){
+                            try{
+						  		
+						  		conn = DBCPUtil.getConnection();
+						  		String sql = " SELECT total_amount FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM')=  ? ";
+						  			   sql += " AND hotel_post_id = ?";
+						  		pstmt = conn.prepareStatement(sql);
+						  		pstmt.setString(1, stb.toString());
+						  		pstmt.setInt(2, s);
+						  		rs = pstmt.executeQuery();
+						  		
+						  		while(rs.next()){
+						  			int money = rs.getInt(1);
+						  			lastMonthMoney += money;
+						  		}
+						  	}catch(Exception e){
+						  		e.printStackTrace();
+						  	}finally{
+						  		DBCPUtil.close(pstmt, rs, conn);
+						  	}
+						  	
+                            try{
+						   		conn = DBCPUtil.getConnection();
+						   		String sql = "SELECT COUNT(*) FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM') = ?";
+					   			       sql += " AND hotel_post_id = ?";
+					   			pstmt = conn.prepareStatement(sql);
+					   			pstmt.setString(1, stb.toString());
+					   			pstmt.setInt(2, s);
+					   			rs = pstmt.executeQuery();
+					   			
+					   			if(rs.next()){
+					   				lastMonthCount = rs.getInt(1);
+					   				lastMonthCounts += lastMonthCount;
+					   			}
+					   			
+						   	}catch(Exception e){
+						   		e.printStackTrace();
+						   	}finally{
+						   		DBCPUtil.close(pstmt, rs, conn);
+						   	}
+                            
+                   	}    
+                            // ------------------------------------------------
+                            DecimalFormat dflast = new DecimalFormat("#,###");
+						   	if(lastMonthCounts != 0){
+						   		lastMonthSum = lastMonthMoney / lastMonthCounts;
+						   		
+						   	}else{
+						   		lastMonthSum = 0;
+
+						   	}
+                         
+						   	String lastformattedNumber = df.format(lastMonthSum);
+						   	
+
+						   	
+						   // 지난달
+						
+						 	Date day = new Date();
+						   	sdf = new SimpleDateFormat("yyyy-MM-DD");
+							String dayStr = sdf.format(today);
+						   
+				   for(int s : numbers){
+						  	try{
+						  		
+						  		conn = DBCPUtil.getConnection();
+						  		String sql = " SELECT total_amount FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM-DD')=  ? ";
+						  		       sql += " AND hotel_post_id = ?";
+						  		pstmt = conn.prepareStatement(sql);
+						  		pstmt.setString(1, stb.toString());
+						  		pstmt.setInt(2, s);
+						  		rs = pstmt.executeQuery();
+						  		
+						  		while(rs.next()){
+						  			int money = rs.getInt(1);
+						  			dailyMoney += money;
+						  		}
+						  	}catch(Exception e){
+						  		e.printStackTrace();
+						  	}finally{
+						  		DBCPUtil.close(pstmt, rs, conn);
+						  	}
+						  	
+						
+						   	
+						   	try{
+						   		conn = DBCPUtil.getConnection();
+						   		String sql = "SELECT COUNT(*) FROM reservations WHERE TO_CHAR(booking_date, 'YYYY-MM-DD') = ?";
+					   			   sql += " AND hotel_post_id = ?";
+					   			pstmt = conn.prepareStatement(sql);
+					   			pstmt.setString(1, stb.toString());
+						  		pstmt.setInt(2, s);
+					   			rs = pstmt.executeQuery();
+					   			
+					   			if(rs.next()){
+					   				dailyCount = rs.getInt(1);
+					   			}
+					   			
+						   	}catch(Exception e){
+						   		e.printStackTrace();
+						   	}finally{
+						   		DBCPUtil.close(pstmt, rs, conn);
+						   	}
+						   	
+						}
+						   	//  -------------------------------------
+						   	if(monthlyCount == 0){
+							   	dailySum = 0;
+
+						   	}else{
+						   		dailySum = dailyMoney / dailyCount;
+						   	}
+						   	String dailyformattedNumber = df.format(monthlySum);
+						 // 일별
+						  	
+						    try {
+		
+
+						        String sql = "SELECT title FROM posts WHERE member_num = ?";
+						        pstmt = conn.prepareStatement(sql);
+						        pstmt.setInt(1, member_num);
+						        rs = pstmt.executeQuery();
+						
+						        if (rs.next()) {
+						            hotelName = rs.getString(1);
+						        }
+						    } catch (Exception e) {
+						        e.printStackTrace();
+						    } finally {
+								DBCPUtil.close(pstmt, rs, conn);
+						    }
+						 // 호텔명
+						  
+			 				try{
+			 					conn = DBCPUtil.getConnection();
+
+			 					String sql = "SELECT username FROM users WHERE member_num = ?";
+			 					pstmt.setInt(1, member_num);
+
+			 					pstmt = conn.prepareStatement(sql);
+			 					rs = pstmt.executeQuery();
+			 					if(rs.next()){
+			 						name = rs.getString(1);
+			 					}
+			 					
+			 				}catch(Exception e){
+			 					
+			 				}finally{
+			 					DBCPUtil.close(pstmt, rs, conn);
+			 				}
+			 				// 호텔 매니저
+			 				
+				%>						   
+											
+						<tr>
+						    <td><%= hotelName %> </td>
+						    <td><%=name%></td>
+						    <td><%= session.getAttribute("name") != null ? session.getAttribute("name") : "관리자" %></td>
+						    <%if(prid != null && prid.equals("WEEKLY")){ %>
+						    <td><%= weeklyCount %></td>
+						    <td>₩<%= weeklyMoney %></td>
+						    <td>₩<%= weekformattedNumber %></td>
+						    <%}else if(prid != null && prid.equals("MONTHLY")){%>
+						    <td><%= monthlyCount %></td>
+						    <td>₩<%=totalMonthlyCount %></td>
+						    <td>₩<%= monthformattedNumber %></td>
+						    <%}else if(prid != null && prid.equals("DAILY")){%>
+						    <td><%= dailyCount %></td>
+						    <td>₩<%= dailyMoney %></td>
+						    <td>₩<%= dailyformattedNumber %></td>
+						    <%}else if(prid != null && prid.equals("LASTMONTHLY")){%>
+						    <td><%= lastMonthCounts %></td>
+						    <td>₩<%= lastMonthMoney %></td>
+						    <td>₩<%= lastformattedNumber %></td>
+							<%} %>
+						    
+						</tr>
                     </tbody>
                 </table>
 
@@ -841,5 +1215,10 @@
             </section>
         </main>
     </div>
+<script>
+function submitForm() {
+    document.getElementById('periodForm').submit();
+}
+</script>
 </body>
 </html> 

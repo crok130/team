@@ -411,9 +411,6 @@
     </style>
 </head>
 <body>
-    <a href="index.jsp" class="back-to-main">
-        <i class="fas fa-arrow-left"></i> 일반 사이트로
-    </a>
 
     <!-- Header -->
     <header class="header">
@@ -430,7 +427,7 @@
             <div class="auth-buttons">
                 <a href="admin-login.jsp" class="btn btn-outline">관리자 로그인</a>
                 <a href="admin-register.jsp" class="btn btn-primary">매니저 가입</a>
-                <a href="logout.jsp" class="btn btn-outline logout-btn">
+                <a href="logout" class="btn btn-outline logout-btn">
                     <i class="fas fa-sign-out-alt"></i> 로그아웃
                 </a>
             </div>
